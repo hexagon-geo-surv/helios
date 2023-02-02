@@ -89,8 +89,8 @@
 				pulseFreqs_Hz				= "100000"
 				pulseLength_ns     			= "4"
 				rangeMin_m					= "2"
-				scanAngleMax_deg   			= "35"
-				scanAngleEffectiveMax_deg   = "35"
+				scanAngleMax_deg   			= "35.2"
+				scanAngleEffectiveMax_deg   = "35.2"
 				rotorFreq1_Hz					= "7294"
 				rotorFreq2_Hz					= "-4664"
 				wavelength_nm				= "905"
@@ -105,8 +105,34 @@
 		<headRotateAxis x="1" y="0" z="0" />
 	</scanner>
 
-	<!--######## END LIVOX Mid-70 ####### -->
+	<!--######## END LIVOX Mid-40 ####### -->
 
+    <!--######## BEGIN LIVOX Mid 40 ####### -->
+	<!-- beam divergence horizontal: 0.000523598, vertical: 0.004887 -->
+	<scanner 	id 							= "livox_mid-40"
+				accuracy_m					= "0.02"
+				beamDivergence_rad 			= "0.0027"
+				name              			= "Livox Mid-40"
+				optics            			= "risley"
+				pulseFreqs_Hz				= "100000"
+				pulseLength_ns     			= "5"
+				rangeMin_m					= "2"
+				scanAngleMax_deg   			= "19.2"
+				scanAngleEffectiveMax_deg   = "19.2"
+				rotorFreq1_Hz					= "7294"
+				rotorFreq2_Hz					= "-4664"
+				wavelength_nm				= "905"
+	>
+				
+		<FWFSettings beamSampleQuality="3"/>
+		<beamOrigin x="0" y="0" z="0">
+			<rot axis="z" angle_deg="-90" />
+		</beamOrigin>
+
+		<headRotateAxis x="1" y="0" z="0" />
+	</scanner>
+
+	<!--######## END LIVOX Mid-40 ####### -->
 
 	<!-- ##### BEGIN Velodyne VLP-16 ("Puck") ##### -->
 	<!-- for the angles and corrections, see https://velodynelidar.com/wp-content/uploads/2019/12/63-9243-Rev-E-VLP-16-User-Manual.pdf, page 54) -->
