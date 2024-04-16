@@ -1,0 +1,75 @@
+name: Create installers
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-installer:
+    name: Build installer for ${{ matrix.platform }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [linux-64, win-64, osx-64]
+    defaults:
+      run:
+        # Conda requires a login shell in order to work properly
+        shell: bash -l {0}  
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Helios dev environment
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          channels: conda-forge,defaults
+      
+      - name: Install constructor and menuinst
+        run: |
+          conda install constructor menuinst
+
+      - name: Create installer
+        working-directory: installer
+        run: |
+          constructor . --platform ${{ matrix.platform }} --output-dir dist --verbose
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v2
+        with:
+          name: installer-${{ matrix.platform }}
+          path: installer/dist/*
+
+  test-installer:
+    name: Test installer for ${{ matrix.os }}
+    needs: [build-installer]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux-64
+          - os: windows-latest
+            platform: win-64
+          - os: macos-latest
+            platform: osx-64
+    defaults:
+      run:
+        # Conda requires a login shell in order to work properly
+        shell: bash -l {0}  
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download installer
+        uses: actions/download-artifact@v2
+        with:
+          name: installer-${{ matrix.platform }}
+
+      - name: Install Helios through installer
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          installer-url: ${{ github.workspace }}/installer/dist/helios*.sh
+
+      - name: Ensure that the package is working (rudimentary)
+        run:
+          helios --version
+          python -c "import helios; print(helios.__version__)"

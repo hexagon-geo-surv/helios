@@ -1,0 +1,23 @@
+name: helios
+version: "2.0.0a1"
+channels:
+  - conda-forge
+  - conda-forge/label/helios_dev
+specs:
+  - conda
+  - console_shortcut
+  - helios
+  - jupyterlab
+  - menuinst
+welcome_image: h++.png
+license_file: ../COPYING.LESSER
+
+initialize_by_default: true
+# This will give the user the option to make the installed Python
+# the default Python on the system. Note that the default on this
+# question is "no" (but could be changed with 'register_python_default').
+register_python: true
+
+# Trigger the generation of menu items for all platforms
+post_install: menuitems.sh  # [ unix ]
+post_install: menuitems.bat  # [ win ]

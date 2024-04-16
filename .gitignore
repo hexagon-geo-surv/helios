@@ -1,6 +1,12 @@
 # Ignore the setuptools_scm output
 python/pyhelios/_version.py
 
+# Constructor and menuinst related files
+installer/tmp
+installer/helios-*.exe
+installer/helios-*.pkg
+installer/helios-*.sh
+
 # Ignore output, build and library dirs
 cmake-build-*
 bin/*
