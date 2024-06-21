@@ -17,21 +17,23 @@ RUN apt update && apt install -y gcc g++ cmake make git wget unzip xz-utils
 
 # Clone repository
 ARG branch
-RUN git clone --branch ${branch} https://github.com/3dgeo-heidelberg/helios.git && cd helios && git status
+RUN git clone --depth 1 --branch ${branch} https://github.com/3dgeo-heidelberg/helios.git && cd helios && git log
 
 WORKDIR /home/helios/lib
 
 # Download and extract needed libs
-RUN wget http://lastools.github.io/download/LAStools.zip \
+RUN wget https://github.com/LAStools/LAStools/archive/refs/tags/v2.0.3.zip \
 http://download.osgeo.org/proj/proj-8.0.0.tar.gz \
 https://github.com/OSGeo/gdal/releases/download/v3.3.0/gdal-3.3.0.tar.gz --no-check-certificate \
 https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.gz \
 https://github.com/g-truc/glm/releases/download/0.9.9.8/glm-0.9.9.8.zip \
 http://sourceforge.net/projects/arma/files/armadillo-10.6.2.tar.xz && \
-unzip LAStools.zip && rm LAStools.zip && tar -xzvf proj-8.0.0.tar.gz && \
-tar -xzvf gdal-3.3.0.tar.gz && tar -xzvf boost_1_76_0.tar.gz && \
-unzip glm-0.9.9.8.zip && rm glm-0.9.9.8.zip && \
-tar xf armadillo-10.6.2.tar.xz && mv armadillo-10.6.2 armadillo && rm armadillo-10.6.2.tar.xz
+unzip v2.0.3.zip && mv LAStools-2.0.3 LAStools && \
+tar -xzvf proj-8.0.0.tar.gz && \
+tar -xzvf gdal-3.3.0.tar.gz && \
+tar -xzvf boost_1_76_0.tar.gz && \
+unzip glm-0.9.9.8.zip && \
+tar xf armadillo-10.6.2.tar.xz && mv armadillo-10.6.2 armadillo
 
 # Install LASTools
 WORKDIR /home/helios/lib/LAStools
@@ -39,7 +41,7 @@ RUN cmake . && make
 
 # Install GLM
 WORKDIR /home/helios/lib
-RUN cd glm && cmake . && make -j 6
+RUN cd glm && cmake . && make
 
 # Install Armadillo
 WORKDIR /home/helios/lib/armadillo
@@ -50,11 +52,11 @@ RUN apt install -y liblapack-dev libblas-dev && \
 WORKDIR /home/helios/lib
 RUN apt install -y pkg-config libsqlite3-dev sqlite3 libtiff5-dev libcurl4-openssl-dev && \
 mv proj-8.0.0 proj && cd proj && \
-./configure --prefix=/home/helios/lib/gdal/projlib && make -j 15 && make install
+./configure --prefix=/home/helios/lib/gdal/projlib && make && make install
 
 # Install GDAL
 WORKDIR /home/helios/lib
-RUN mv gdal-3.3.0/* gdal/ && cd gdal && ./configure --prefix=/home/helios/lib/gdal --with-proj=/home/helios/lib/gdal/projlib && make -j 15 && make install
+RUN mv gdal-3.3.0/* gdal/ && cd gdal && ./configure --prefix=/home/helios/lib/gdal --with-proj=/home/helios/lib/gdal/projlib && make && make install
 
 # Make libgdal.so and libproj.so link against libcurl4 installed by libcurl4-openssl-dev
 RUN apt install patchelf && patchelf --replace-needed libcurl.so.4 /usr/lib/x86_64-linux-gnu/libcurl.so ./gdal/lib/libgdal.so && \
@@ -67,7 +69,7 @@ ENV ENV_NAME=pyhelios_env
 
 # Install miniconda
 ENV CONDA_DIR /opt/conda
-RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-py38_23.11.0-2-Linux-x86_64.sh -O ~/miniconda.sh && \
      /bin/bash ~/miniconda.sh -b -p /opt/conda
 
 # Put conda in path so we can use it
@@ -107,13 +109,17 @@ RUN apt install -y libglu1-mesa-dev
 
 # Compile Helios with PyBindings active
 WORKDIR /home/helios
-RUN cmake -DPYTHON_BINDING=1 -DPYTHON_VERSION=${PYTHON_VERSION} -DPYTHON_PATH=${CONDA_ENV_DIR} . && make -j 15
+RUN sed -i 's/HELIOS_GIT_HASH = \"\w*\";/HELIOS_GIT_HASH = '"$(git log -1 --format=\"%h\")"';/' src/main/helios_version.cpp && \
+    sed -i 's/HELIOS_VERSION = \"[0-9|\.]*\";/HELIOS_VERSION = \"'"$(git tag | sed "s/v//")"'\";/' src/main/helios_version.cpp && \
+    cmake -DPYTHON_BINDING=1 -DPYTHON_VERSION=${PYTHON_VERSION} -DPYTHON_PATH=${CONDA_ENV_DIR} . && \
+    make -j 15
 
 # Install PyHelios dependencies
 
 # Clean
 WORKDIR /home/helios/lib
-RUN rm *.tar.gz
+RUN rm *.tar.*z
+RUN rm *.zip
 
 # Make sure we use the new created Python environment
 ENV PATH /opt/conda/envs/${ENV_NAME}/bin:$PATH
