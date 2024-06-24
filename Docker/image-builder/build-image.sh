@@ -31,13 +31,13 @@ function helpPanel(){
 function buildImageName(){
     python_version_nodot="${python_version//./}"
     if [[ $branch =~ v[0-9]\.[0-9]\.[0-9] ]]
-    then branch="${branch//v/}"
+    then branch_name="${branch//v/}"
     fi # Check if a tag is being used and remove v
-    image_name="helios-py${python_version_nodot}:${branch}"
+    image_name="helios-py${python_version_nodot}:${branch_name}"
 }
 
 function buildImage(){
-    docker build -t $image_name --build-arg pyv=$python_version --build-arg branch=${branch} .
+    docker build -t $image_name  --build-arg pyv=$python_version --build-arg branch=${branch} .
 }
 
 function checkBuild(){
