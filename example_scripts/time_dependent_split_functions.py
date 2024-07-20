@@ -211,6 +211,7 @@ def laz_merge(filepaths, outfile):
                         lf.append_points(lf_aa.points)
     return 0
 
+
 def objs_in_intervall(infile, interval = 9.5):
     """
     Function which creates a list of all scene parts within a user defined interval.
@@ -343,6 +344,7 @@ def filter_and_write(interval_dir, filtered_interval_dir, interval = 5):
         if len(pc_coords_filtered) > 0:
             write_las(pc_coords_filtered, filtered_interval_dir + "/" + filename, attribute_dict= pc_attributes_filtered)
     return 0
+
 
 def read_las(infile):
     """
