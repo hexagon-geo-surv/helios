@@ -44,8 +44,9 @@ public:
         )
     {
         this->scanAngle = scanAngleMax_rad;
-        this->rotorSpeed_rad_1 = rotorFreq_Hz_1 * 0.5 / M_PI;
-        this->rotorSpeed_rad_2 = rotorFreq_Hz_2 * 0.5 / M_PI;
+        // should be called rotorFreq_rpm_1 etc.
+        this->rotorSpeed_rad_1 = rotorFreq_Hz_1 * PI_2 / 60;
+        this->rotorSpeed_rad_2 = rotorFreq_Hz_2 * PI_2 / 60;
 	}
     std::shared_ptr<AbstractBeamDeflector> clone() override;
     void _clone(std::shared_ptr<AbstractBeamDeflector> abd) override;

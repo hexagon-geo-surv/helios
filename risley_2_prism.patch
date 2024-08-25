@@ -1,0 +1,78 @@
+diff --git a/src/scanner/beamDeflector/RisleyBeamDeflector.cpp b/src/scanner/beamDeflector/RisleyBeamDeflector.cpp
+index 4ea39a9e..4ea28739 100644
+--- a/src/scanner/beamDeflector/RisleyBeamDeflector.cpp
++++ b/src/scanner/beamDeflector/RisleyBeamDeflector.cpp
+@@ -8,11 +8,24 @@ using namespace std;
+ #include <math.h>
+ #include <logging.hpp>
+ 
++#include <glm/glm.hpp>
+ 
+ #include "maths/Directions.h"
+ 
+ using Base = std::shared_ptr<AbstractBeamDeflector>;
+ 
++namespace{
++	glm::dvec3 calculate_refracted_ray(
++		glm::dvec3 incident_ray,
++		glm::dvec3 boundaryNormal,
++		double ratio_of_refractive_indices)
++	{
++		double r = ratio_of_refractive_indices;
++		double c = -glm::dot(incident_ray, boundaryNormal);
++		return r * incident_ray + (r * c - sqrt(1 - r * r * (1 - c * c))) * boundaryNormal;
++	}
++}
++
+ // Construction/Cloning
+ Base RisleyBeamDeflector::clone(){
+     Base ombd =
+@@ -51,13 +64,43 @@ void RisleyBeamDeflector::doSimStep() {
+ 
+ 	// calculate the absolute angle
+ 	
+-	double xFOV = cos(time * rotorSpeed_rad_1) + cos(time * rotorSpeed_rad_2);
+-	double yFOV = -sin(time * rotorSpeed_rad_1) - sin(time * rotorSpeed_rad_2);
++	double n_prism = 1.5;
++	double n_air = 1.0;
++	double prismAngle_rad = PI_EIGHTH;
++
++	glm::dvec3 l0(0.0, 1.0, 0.0);
++
++	glm::dvec3 n2
++	(
++		sinf64(prismAngle_rad) * sinf64(rotorSpeed_rad_1 * time),
++		cosf64(prismAngle_rad),
++		sinf64(prismAngle_rad) * cosf64(rotorSpeed_rad_1 * time)
++	);
++
++	glm::dvec3 n3
++	(
++		-sinf64(prismAngle_rad) * sinf64(rotorSpeed_rad_2 * time),
++		-cosf64(prismAngle_rad),
++		-sinf64(prismAngle_rad) * cosf64(rotorSpeed_rad_2 * time)
++	);
++
++	// first boundary passed: nothing happens as the ray is perprendicular to the boundary.
++
++	// second boundary passed (from prism medium to air). Here the boundary is angled due to the prism shape.
++	glm::dvec3 v2 = calculate_refracted_ray(l0, n2, n_prism / n_air);
++	// third boundary passed (from air to prism medium). Here the boundary is angled due to the prism shape. 
++	// Also the refraction of the previous boundary passing need to be taken into acoount.
++	glm::dvec3 v3 = calculate_refracted_ray(v2, n3, n_air / n_prism);
++	// fourth boundary passed (from prism medium to air). 
++	// Here the boundary is again perpdendicular to the y axis but the previous refaction has to be taken into account.
++	glm::dvec3 v4 = calculate_refracted_ray(v3, glm::dvec3(0.0, 1.0, 0.0), n_prism / n_air);
++
++	// calculate yaw(phi) and pitch(eta) angles
++	double phi = atan(-v4.x / v4.y);
++	double eta = asin(v4.z);
+ 
+-	double phi = -xFOV / 2.0 * scanAngle;
+-	double eta = -yFOV / 2.0 * scanAngle;
+-	
+ 	// Rotate to current position:
++
+ 	this->cached_emitterRelativeAttitude = Rotation(RotationOrder::ZXY, phi, eta, 0);
+ }
+ 
