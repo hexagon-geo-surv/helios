@@ -100,7 +100,7 @@ void RisleyBeamDeflector::doSimStep() {
 	// Also the refraction of the previous boundary passing need to be taken into acoount.
 	glm::dvec3 v3 = calculate_refracted_ray(v2, n3, n_air / n_prism);
 	// fourth boundary passed (from prism medium to air). 
-	// Here the boundary is again perpdendicular to the y axis but the previous refaction has to be taken into account.
+	// Here the boundary is again perpdendicular to the x axis but the previous refaction has to be taken into account.
 	glm::dvec3 v4 = calculate_refracted_ray(v3, glm::dvec3(1.0, 0.0, 0.0), n_prism / n_air);
 
 	// equations (11) and (12)
