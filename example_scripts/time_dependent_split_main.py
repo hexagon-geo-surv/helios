@@ -171,6 +171,7 @@ for path in intervall_surveys:
 
 
 # Merge legs of interval and write them to separate interval pcs.
+pc_paths = []
 sub_dirs = []
 for file in os.listdir(output_interval_clouds):
         sub_dirs.append(os.path.join(output_interval_clouds,file))
@@ -180,10 +181,11 @@ for i, sub_dir in enumerate(sub_dirs):
         for file in os.listdir(sub_dir):
             paths.append(os.path.join(sub_dir, file))
         tds.laz_merge(paths, f"{merged_intervals}merged_interval_{i+1}.laz")
+        pc_paths.append(f"{merged_intervals}{i+1}.laz")
 
 
 # Filter merged interval pcs to points inside the interval time.
-tds.filter_and_write(merged_intervals, merged_filtered_intervals, interval)
+tds.filter_and_write(pc_paths, merged_filtered_intervals, interval)
 
 
 # Merge filtered interval pcs to final pc.
