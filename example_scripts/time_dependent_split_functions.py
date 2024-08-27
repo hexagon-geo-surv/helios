@@ -312,37 +312,52 @@ def gen_intervall_scene(original_scene_file, output_dir, id_array):
     return outfiles
 
 
-def filter_and_write(interval_dir, filtered_interval_dir, interval = 5):
+def filter_and_write(interval_paths, filtered_interval_dir, id_array, interval=5):
     """
-    Function that filters the interval pcs so that only points inside the intervals gps time remain. Writes these filtered pcs to new file.
+    Function that filters the interval point clouds so that only points inside the intervals' GPS time remain.
+    Writes these filtered point clouds to new files.
 
-    :param interval_dir: Directory where the interval pcs are saved.
-    :param filtered_interval_dir: Directory where the filtered interval pcs will be saved.
+    :param interval_paths: List of paths to the merged interval point clouds.
+    :param filtered_interval_dir: Directory where the filtered interval point clouds will be saved.
+    :param id_array: Array storing the hitObjectId for each interval.
     :param interval: Interval in seconds.
     """
 
     i_start = 0
     i_end = interval
-    for filename in os.listdir(interval_dir):
+    file_index = 0
 
-        print(filename)
-        print(f"intervall ranging from {i_start} to {i_end}")
-        coords, attributes = read_las(interval_dir + "/" + filename)
-        gps_time = attributes["gps_time"]
-        #global_min_t = np.min(gps_time)
-        global_min_t = 590000 + 7590   # <- The exact reason for this offset should be investigated.
-        attributes["gps_time"] = gps_time - global_min_t
-        pc_coords_filtered = coords[(attributes['gps_time'] >= i_start) & (attributes['gps_time'] <= i_end)]
-        pc_attributes_filtered = {}
-        for k, v in attributes.items():
-            pc_attributes_filtered[k] = v[(attributes['gps_time'] >= i_start) & (attributes['gps_time'] <= i_end)]
-        print(len(pc_coords_filtered), len(coords))
+    for i in range(len(id_array)):
+        if len(id_array[i]) < 1:
+            print(f"Interval {i + 1} is empty!")
+        else:
+            filename = interval_paths[file_index]
+            print(f"filename of interval {i + 1}")
+            print(filename)
+            print(f"interval ranging from {i_start} to {i_end}")
 
+            coords, attributes = read_las(filename)
+            gps_time = attributes["gps_time"]
+            global_min_t = 590000 + 7590  # <- The exact reason for this offset should be investigated.
+            attributes["gps_time"] = gps_time - global_min_t
+
+            pc_coords_filtered = coords[(attributes['gps_time'] >= i_start) & (attributes['gps_time'] <= i_end)]
+            pc_attributes_filtered = {}
+            for k, v in attributes.items():
+                pc_attributes_filtered[k] = v[(attributes['gps_time'] >= i_start) & (attributes['gps_time'] <= i_end)]
+
+            print(len(pc_coords_filtered), len(coords))
+
+            if len(pc_coords_filtered) > 0:
+                write_las(pc_coords_filtered, f"{filtered_interval_dir}merged_filtered_interval_{i + 1}.laz",
+                          attribute_dict=pc_attributes_filtered)
+
+            file_index += 1
+
+        # Update time range for the next interval
         i_start += interval
         i_end += interval
-        print(np.min(attributes["gps_time"]), np.max(attributes["gps_time"]))
-        if len(pc_coords_filtered) > 0:
-            write_las(pc_coords_filtered, filtered_interval_dir + "/" + filename, attribute_dict= pc_attributes_filtered)
+
     return 0
 
 
@@ -385,8 +400,8 @@ def read_las(infile):
     return coords, attributes
 
 
-def write_las(outpoints, outfilepath, attribute_dict={}, offset = False):
-    """              Test with removed offset
+def write_las(outpoints, outfilepath, attribute_dict={}):
+    """             
     Function which writes a las/laz file.
 
     :param outpoints: 3D array of points to be written to output file
@@ -404,20 +419,6 @@ def write_las(outpoints, outfilepath, attribute_dict={}, offset = False):
     las.y = outpoints[:, 1]
     las.z = outpoints[:, 2]
 
-    if offset == True:
-        testfile = "C:/Users/an274/heliospp_alt/output/intervall_surveys/leg000_points.las"
-        with laspy.open(testfile, "r") as f:
-
-            testlas = f.read()
-            scales = testlas.header.scales
-            offsets = testlas.header.offsets
-            print(offsets)
-            print(scales)
-       # print(las.x)
-        las.x = (las.x - offsets[0])
-        las.y = (las.y - offsets[1])
-        #las.z = (las.z + offsets[2])
-        # add all dictionary entries to las data (if available)
     for key, vals in attribute_dict.items():
         try:
             las[key] = vals
