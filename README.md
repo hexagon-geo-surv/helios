@@ -281,9 +281,9 @@ Our QGIS Plugin AEOS embeds HELIOS++ into one of the most widely used GIS applic
 ## ToDo 
 - [x] Fix bugs regarding amount of interval pcs and empty intervals.
 - [ ] Find solution for different point counts for different interval sizes
-- [ ] Implement option to only run intervals for certain objects
+- [x] Implement option to only run intervals for certain objects
 - [ ] Implement top down approach using faces of objects or similar proxy for scene part size
-- [ ] Implement function that detects interval that was already simulated. Thus the same point cloud just needs to be filtered for two intervals, not simulated twice which saves computation time
+- [x] Implement function that detects interval that was already simulated. Thus the same point cloud just needs to be filtered for two intervals, not simulated twice which saves computation time
 - [ ] Investigate options to integrate workflow into pyhelios
 
 
