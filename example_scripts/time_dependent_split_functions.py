@@ -314,7 +314,7 @@ def gen_interval_scene(original_scene_file, output_dir, id_list, obj_of_int):
     return outfiles
 
 
-ef filter_and_write(interval_paths, filtered_interval_dir, id_list, obj_of_int, interval=5):
+def filter_and_write(interval_paths, filtered_interval_dir, id_list, obj_of_int, interval=5):
     """
     Function that filters the interval point clouds so that only points inside the intervals' GPS time remain.
     Writes these filtered point clouds to new files.
