@@ -45,7 +45,7 @@ final_cloud = Path(outdir) / survey_name / f'{survey_name}_final.laz'  # add tim
 
 import pyhelios
 
-
+obj_of_int = []
 # Create sub scenes with one part each out of the original scene file.
 split_scene_files = tds.split_xml(original_scene, scene_dir)
 
@@ -139,16 +139,16 @@ tds.laz_merge(paths, merged_bboxes_las)
 
 # Checks for scene parts in a user defined interval
 interval = 30
-obj_ids = tds.objs_in_intervall(merged_bboxes_las, interval)
+obj_ids = tds.objs_in_interval(merged_bboxes_las, interval)
 
 
 # Writes scenes and surveys for intervals.
-intervall_scene_outfiles = tds.gen_intervall_scene(original_scene, scene_dir, obj_ids)
-intervall_surveys = tds.write_multiple_surveys(original_survey, intervall_scene_outfiles, scene_dir, f"interval_survey")
+interval_scene_outfiles = tds.gen_interval_scene(original_scene, scene_dir, obj_ids, obj_of_int)
+interval_surveys = tds.write_multiple_surveys(original_survey, interval_scene_outfiles, scene_dir, f"interval_survey")
 
 
 # Run simulation for each interval survey.
-for path in intervall_surveys:
+for path in interval_surveys:
     pyhelios.loggingSilent()
     pyhelios.setDefaultRandomnessGeneratorSeed("123")
 
@@ -185,7 +185,7 @@ for i, sub_dir in enumerate(sub_dirs):
 
 
 # Filter merged interval pcs to points inside the interval time.
-tds.filter_and_write(pc_paths, merged_filtered_intervals, interval)
+tds.filter_and_write(pc_paths, merged_filtered_intervals, obj_ids, obj_of_int, interval)
 
 
 # Merge filtered interval pcs to final pc.
