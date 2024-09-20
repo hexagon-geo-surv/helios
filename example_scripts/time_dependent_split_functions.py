@@ -131,9 +131,7 @@ def write_scene_string(output_dir, objs_outfiles):
     BBox_outfiles = []
 
     for i, paths in enumerate(objs_outfiles):
-        print("writescenestring")
-        print(paths)
-        print(objs_outfiles[i])
+    
         xml = f"""<?xml version="1.0" encoding="UTF-8"?>
         <document>
             <scene id="scene" name="scene">
@@ -197,8 +195,7 @@ def laz_merge(filepaths, outfile):
     with laspy.open(outfile, "a") as lf:
         scales = lf.header.scales
         offsets = lf.header.offsets
-        print(scales)
-        print(offsets)
+        
         for file in filepaths[1:]:
             if file.endswith(".las") or file.endswith(".laz"):
 
@@ -212,14 +209,14 @@ def laz_merge(filepaths, outfile):
     return 0
 
 
-def objs_in_intervall(infile, interval = 9.5):
+def objs_in_interval(infile, interval = 9.5):
     """
     Function which creates a list of all scene parts within a user defined interval.
 
     :param infile: Path to the merged bbox las/laz file.
     :param interval: Interval in seconds.
 
-    :return object_ids: Array which stores the hitObjectId for each interval.
+    :return object_ids: List of arrays which store the hitObjectId for each interval.
     """
 
     coords, att = read_las(infile)
@@ -241,9 +238,6 @@ def objs_in_intervall(infile, interval = 9.5):
         unique_ids = np.unique(att['hitObjectId'][mask])
         print(unique_ids)
         object_ids.append(unique_ids)
-        #print(np.unique(att['hitObjectId']))
-        # Move to the next interval
-        #print(min_t,max_t, upper_interval)
 
         min_t += interval
         upper_interval += interval
@@ -259,24 +253,32 @@ def objs_in_intervall(infile, interval = 9.5):
     return object_ids
 
 
-def gen_intervall_scene(original_scene_file, output_dir, id_array):
+def gen__scene(original_scene_file, output_dir, id_list, obj_of_int):
     """
     Function which creates interval scenes with the scene parts that are present in the interval.
 
     :param original_scene_file: Path to the original scene file.
     :param output_dir: Directory where the interval scene will be saved.
-    :param id_array: Array which stores the hitObjectId for each interval.
+    :param id_list: List of arrays which store the hitObjectId for each interval.
+    :param obj_of_int: List of objectIDs to be scanned.
 
     :return outfiles: List of paths to the interval scene files.
     """
-
+    processed_scenes = set()
     outfiles = []
     i = 0
-    for part_ids in id_array:
-        if len(part_ids) < 1:
+    for part_ids in id_list:
+        if len(part_ids) < 1 or (obj_of_int and not any(obj in part_ids for obj in obj_of_int)):
             i +=1
         else:
+            part_ids_set = frozenset(part_ids)
 
+            if part_ids_set in processed_scenes:
+                print(f"Scene with parts {part_ids} already created. Skipping...")
+                i +=1
+                continue  
+                
+            processed_scenes.add(part_ids_set)
 
             xml_start = """<?xml version="1.0" encoding="UTF-8"?>
 <document>
@@ -312,39 +314,49 @@ def gen_intervall_scene(original_scene_file, output_dir, id_array):
     return outfiles
 
 
-def filter_and_write(interval_paths, filtered_interval_dir, id_array, interval=5):
+def filter_and_write(interval_paths, filtered_interval_dir, id_list, obj_of_int, interval=5):
     """
     Function that filters the interval point clouds so that only points inside the intervals' GPS time remain.
     Writes these filtered point clouds to new files.
 
     :param interval_paths: List of paths to the merged interval point clouds.
     :param filtered_interval_dir: Directory where the filtered interval point clouds will be saved.
-    :param id_array: Array storing the hitObjectId for each interval.
+    :param id_list: List of arrays which store the hitObjectId for each interval.
+    :param obj_of_int: List of objectIDs to be scanned.
+    
     :param interval: Interval in seconds.
     """
 
     i_start = 0
     i_end = interval
+    part_ids_to_file_index = {}
     file_index = 0
 
-    for i in range(len(id_array)):
-        if len(id_array[i]) < 1:
+    for i, part_ids in enumerate(id_list):
+        if len(part_ids) < 1 or (obj_of_int and not any(obj in part_ids for obj in obj_of_int)):
             print(f"Interval {i + 1} is empty!")
         else:
-            filename = interval_paths[file_index]
-            print(f"filename of interval {i + 1}")
-            print(filename)
-            print(f"interval ranging from {i_start} to {i_end}")
+            # Convert part_ids to frozenset for consistent identification of the same scene parts
+            part_ids_set = frozenset(part_ids)
+
+            # Check if the part IDs were processed; reuse the file if so
+            if part_ids_set not in part_ids_to_file_index:
+                part_ids_to_file_index[part_ids_set] = file_index
+                file_index += 1
+
+            # Get the filename for the interval's point cloud
+            filename = interval_paths[part_ids_to_file_index[part_ids_set]]
+            print(f"interval {i + 1} ranging from {i_start} to {i_end}")
 
             coords, attributes = read_las(filename)
             gps_time = attributes["gps_time"]
             global_min_t = 590000 + 7590  # <- The exact reason for this offset should be investigated.
             attributes["gps_time"] = gps_time - global_min_t
 
-            pc_coords_filtered = coords[(attributes['gps_time'] >= i_start) & (attributes['gps_time'] <= i_end)]
+            pc_coords_filtered = coords[(attributes['gps_time'] >= i_start) & (attributes['gps_time'] < i_end)]
             pc_attributes_filtered = {}
             for k, v in attributes.items():
-                pc_attributes_filtered[k] = v[(attributes['gps_time'] >= i_start) & (attributes['gps_time'] <= i_end)]
+                pc_attributes_filtered[k] = v[(attributes['gps_time'] >= i_start) & (attributes['gps_time'] < i_end)]
 
             print(len(pc_coords_filtered), len(coords))
 
