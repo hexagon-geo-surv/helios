@@ -13,10 +13,10 @@ def split_xml(file, output_dir):
     """
     Function to split a HELIOS++ scene into sub scenes, one for each part.
 
-    :param file: Path to the original scene file
-    :param output_dir: Directory where the sub scenes will be saved
+    :param file: Path to the original scene file.
+    :param output_dir: Directory where the sub scenes will be saved.
 
-    :return outfiles: List of paths to the sub scene files
+    :return outfiles: List of paths to the sub scene files.
     """
 
     xml_start = """<?xml version="1.0" encoding="UTF-8"?>
@@ -39,7 +39,7 @@ def split_xml(file, output_dir):
     for i, part in enumerate(parts):
         part_fp = part.find(".//param[@key='filepath']").get("value")
         part_name = Path(part_fp).stem
-        outfile = Path(output_dir)  / f"{part_name}.xml"
+        outfile = Path(output_dir)  / f"{part_name}_scene_part_{i}.xml"
         with open(outfile, "w") as f:
             f.write(xml_start)
             f.write("        " + ET.tostring(part).decode("utf-8"))
@@ -253,7 +253,7 @@ def objs_in_interval(infile, interval = 9.5):
     return object_ids
 
 
-def gen__scene(original_scene_file, output_dir, id_list, obj_of_int):
+def gen_interval_scene(original_scene_file, output_dir, id_list, obj_of_int):
     """
     Function which creates interval scenes with the scene parts that are present in the interval.
 
@@ -314,7 +314,7 @@ def gen__scene(original_scene_file, output_dir, id_list, obj_of_int):
     return outfiles
 
 
-def filter_and_write(interval_paths, filtered_interval_dir, id_list, obj_of_int, interval=5):
+ef filter_and_write(interval_paths, filtered_interval_dir, id_list, obj_of_int, interval=5):
     """
     Function that filters the interval point clouds so that only points inside the intervals' GPS time remain.
     Writes these filtered point clouds to new files.
@@ -322,13 +322,13 @@ def filter_and_write(interval_paths, filtered_interval_dir, id_list, obj_of_int,
     :param interval_paths: List of paths to the merged interval point clouds.
     :param filtered_interval_dir: Directory where the filtered interval point clouds will be saved.
     :param id_list: List of arrays which store the hitObjectId for each interval.
-    :param obj_of_int: List of objectIDs to be scanned.
-    
     :param interval: Interval in seconds.
     """
 
     i_start = 0
     i_end = interval
+
+    # Track which scene has already been processed, map part IDs to file index
     part_ids_to_file_index = {}
     file_index = 0
 
@@ -348,25 +348,27 @@ def filter_and_write(interval_paths, filtered_interval_dir, id_list, obj_of_int,
             filename = interval_paths[part_ids_to_file_index[part_ids_set]]
             print(f"interval {i + 1} ranging from {i_start} to {i_end}")
 
+            # Read point cloud data
             coords, attributes = read_las(filename)
             gps_time = attributes["gps_time"]
-            global_min_t = 590000 + 7590  # <- The exact reason for this offset should be investigated.
+            global_min_t = 590000 + 7590  # Investigate the reason for this offset
             attributes["gps_time"] = gps_time - global_min_t
 
+            # Filter point cloud by GPS time for the current interval
             pc_coords_filtered = coords[(attributes['gps_time'] >= i_start) & (attributes['gps_time'] < i_end)]
             pc_attributes_filtered = {}
             for k, v in attributes.items():
                 pc_attributes_filtered[k] = v[(attributes['gps_time'] >= i_start) & (attributes['gps_time'] < i_end)]
 
-            print(len(pc_coords_filtered), len(coords))
+            print(f"Filtered {len(pc_coords_filtered)} points from a total of {len(coords)} points")
 
+            # Write filtered point cloud to file
             if len(pc_coords_filtered) > 0:
                 write_las(pc_coords_filtered, f"{filtered_interval_dir}merged_filtered_interval_{i + 1}.laz",
                           attribute_dict=pc_attributes_filtered)
 
-            file_index += 1
 
-        # Update time range for the next interval
+        # Update time range for next interval
         i_start += interval
         i_end += interval
 
