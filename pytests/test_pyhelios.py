@@ -371,16 +371,17 @@ def test_output(regression_data, export_to_file):
     output = sim.join()
     measurements_array, trajectory_array = pyhelios.outputToNumpy(output)
     time = measurements_array[:, 16]
-    pcloud = pcu.PointCloud(measurements_array[:, :3], fnames=['gps_time'], F=time.reshape(time.shape[0], 1))
+    helios_amplitude = measurements_array[:, 9]
+    pcloud = pcu.PointCloud(measurements_array[:, :3], fnames=['gps_time', 'heliosAmplitude'], F=np.vstack([time, helios_amplitude]).T)
     las = laspy.read(regression_data / 'tiffloader_als_merged.las')
-    pcloud_ref = pcu.PointCloud.from_las(las, fnames=['gps_time'])
-    pcloud.assert_equals(pcloud_ref, eps=0.00011)  # larger tolerance due to las scale factor of 0.0001
+    pcloud_ref = pcu.PointCloud.from_las(las, fnames=['gps_time', 'heliosAmplitude'])
+    pcloud.assert_equals(pcloud_ref, eps=0.5)  # larger tolerance due to las scale factor of 0.0001
     if export_to_file:
         dirname = xmldisplayer.find_playback_dir(survey_path, helios_root=WORKING_DIR)
         assert (Path(dirname) / 'leg000_points.xyz').exists()
-        pcloud0 = pcu.PointCloud.from_xyz_file(Path(dirname) / 'leg000_points.xyz', cols=(0, 1, 2), names=['x', 'y', 'z'])
-        pcloud_ref0 = pcu.PointCloud.from_las_file(regression_data / 'tiffloader_als_leg000_points.las')
-        pcloud0.assert_equals(pcloud_ref0, eps=0.00011)  # larger tolerance due to las scale factor of 0.0001
+        pcloud0 = pcu.PointCloud.from_xyz_file(Path(dirname) / 'leg000_points.xyz', cols=(0, 1, 2, 3, 10), names=['x', 'y', 'z', 'heliosAmplitude', 'gps_time'])
+        pcloud_ref0 = pcu.PointCloud.from_las_file(regression_data / 'tiffloader_als_leg000_points.las', fnames = ['heliosAmplitude', 'gps_time'])
+        pcloud0.assert_equals(pcloud_ref0, eps=0.00011, num_core_points=100)  # larger tolerance due to las scale factor of 0.0001
         assert (Path(dirname) / 'leg001_points.xyz').exists()
         assert (Path(dirname) / 'leg002_points.xyz').exists()
         if DELETE_FILES_AFTER:

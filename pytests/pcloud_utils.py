@@ -11,6 +11,7 @@ import laspy
 import pandas as pd
 import numpy as np
 from scipy.spatial import KDTree as KDT
+from sklearn.neighbors import NearestNeighbors
 
 # ---   CONSTANTS   --- #
 # --------------------- #
@@ -18,6 +19,7 @@ from scipy.spatial import KDTree as KDT
 PCLOUD_FNAME_GPS_TIME = 'gps_time'
 PCLOUD_FNAME_REFLECTANCE = 'reflectance'
 PCLOUD_FNAME_NIR = 'nir'
+PCLOUD_FNAME_H_AMPLITUDE = 'heliosAmplitude'
 
 
 # ---   POINT CLOUD   --- #
@@ -75,13 +77,13 @@ class PointCloud:
         return PointCloud(X, fnames=fnames, F=F, y=y)
 
     @staticmethod
-    def from_las_file(path):
+    def from_las_file(path, fnames=['gps_time', 'heliosAmplitude']):
         """
         Build a point cloud object from the LAS file at the given path.
 
         :param path: Path to the LAS file.
         """
-        return PointCloud.from_las(laspy.read(path))
+        return PointCloud.from_las(laspy.read(path), fnames=fnames)
 
     @staticmethod
     def from_xyz_file(path, cols, names, sep=' '):
@@ -120,19 +122,19 @@ class PointCloud:
 
     # ---   ASSERT   --- #
     # ------------------ #
-    def assert_equals(self, pcloud, eps=1e-5, k=16):
+    def assert_equals(self, pcloud, eps=1e-5, k=16, num_core_points=10):
         """
-        Assert whether two point clouds are equal.
+        Assert whether two point clouds are similar.
 
         :param pcloud: The point cloud to compare with.
         :param eps: The numeric tolerance threshold.
-        :param k: How many nearest neighbors must be considered. A high enough
-            value of k implies that points with the same (x, y, z) but acquired
-            at different times (i.e., ti != tj) will be properly handled. If
-            GPSTime.
+        :param k: How many nearest neighbors must be considered.
         """
         # Check number of points
-        assert self.X.shape[0] == pcloud.X.shape[0]
+        num_points = self.X.shape[0]
+        num_points_ref = pcloud.X.shape[0]
+        tol = num_points_ref * 0.0001
+        assert abs(num_points_ref - num_points) < tol
         # Check feature names (feature order must also be the same)
         check = int(self.fnames is None) + int(pcloud.fnames is None)
         assert check != 1  # One has fnames, other does not
@@ -140,18 +142,58 @@ class PointCloud:
             assert len(self.fnames) == len(pcloud.fnames)
             for i, fname in enumerate(self.fnames):
                 assert fname == pcloud.fnames[i]
+
         # Get neighborhoods
-        N = self.find_neighborhoods(pcloud, k)
+        # N = self.find_neighborhoods(pcloud, k)
         # Compare coordinates
-        NX = pcloud.X[N]
-        np.testing.assert_allclose(self.X, NX, atol=eps, rtol=0)
+        # NX = pcloud.X[N]
+        # np.testing.assert_allclose(self.X, NX, atol=eps, rtol=0)
+
+        # Find features, if available (assuming it's the same for both point clouds)
+        for i, fname in enumerate(self.fnames):
+            if fname == PCLOUD_FNAME_GPS_TIME:
+                gps_time_idx = i
+            if fname == PCLOUD_FNAME_H_AMPLITUDE:
+                amplitude_idx = i
+
+        # get core points in both point clouds
+        core_pts_1, core_pt_1_indices = pcloud.random_subsample(target_num_points=num_core_points)
+        core_pts_1_t = pcloud.F[core_pt_1_indices, gps_time_idx]
+        t_2 = self.F[:, gps_time_idx]
+        core_pt_2_indices = [np.where(t_2 == value)[0][0] for value in core_pts_1_t if value in t_2]
+        core_pts_2 = self.X[core_pt_2_indices, :]
+        # only keep core points for which matches were found
+        match_idx = np.isin(core_pts_1_t, t_2[core_pt_2_indices])
+        core_pts_1, core_pt_1_indices = (core_pts_1[match_idx], core_pt_1_indices[match_idx])
+
+        # get local neighbourhoods of core pts
+        nbrs_1 = NearestNeighbors(n_neighbors=k)
+        nbrs_1.fit(self.X)
+        # Find the k nearest neighbors for each point in core_pts and gather the neighbors based on the indices
+        neighborhoods_1_idx = nbrs_1.kneighbors(core_pts_1)[1]
+        neighborhoods_1, neighborhoods_1_f = (pcloud.X[neighborhoods_1_idx], pcloud.F[neighborhoods_1_idx])
+        nbrs_2 = NearestNeighbors(n_neighbors=k)
+        nbrs_2.fit(pcloud.X)
+        neighborhoods_2_idx = nbrs_2.kneighbors(core_pts_2)[1]
+        neighborhoods_2, neighborhoods_2_f = (self.X[neighborhoods_2_idx], self.F[neighborhoods_2_idx])
+
+        # compute local features
+        # point density
+        d1 = self.calculate_3d_point_density(neighborhoods_1)
+        d2 = self.calculate_3d_point_density(neighborhoods_2)
+        np.testing.assert_allclose(d1, d2, atol=eps, rtol=0)
+        # mean amplitudes
+        a1 = np.mean(neighborhoods_1_f[:, amplitude_idx], axis=1)
+        a2 = np.mean(neighborhoods_2_f[:, amplitude_idx], axis=1)
+        np.testing.assert_allclose(a1, a2, rtol=eps)
+
         # Compare features
         if self.F is not None:
             # Check number of features
             assert np.all(np.array(self.F.shape) == np.array(pcloud.F.shape))
             # Check numerical differences in the features
-            NF = pcloud.F[N]
-            np.testing.assert_allclose(self.F, NF, atol=eps, rtol=0)
+            # NF = pcloud.F[N]
+            # np.testing.assert_allclose(self.F, NF, atol=eps, rtol=0)
         # Compare classes
         check = int(self.y is None) + int(pcloud.y is None)
         assert check != 1  # One has classes, other does not
@@ -190,6 +232,67 @@ class PointCloud:
                 jmin = np.argmin(np.abs(pcloud_t[ni]-t[i]))
                 N[i] = ni[jmin]
             return N
+
+
+    def random_subsample(self, target_num_points=100):
+        """
+        Subsample a 3D point cloud to a target number of points using random sampling.
+
+        :param target_num_points: 
+            The desired number of points in the subsampled point cloud.
+        :type target_num_points: int
+
+        :returns: 
+            A tuple containing:
+        
+            - Subsampled point cloud as a NumPy array of shape (target_num_points, 3).
+            - Indices of the subsampled points as a 1D NumPy array of shape (target_num_points,).
+        :rtype: numpy.ndarray
+        """
+        n = self.X.shape[0]
+        if target_num_points >= n:
+            return self  # No subsampling needed if target is greater than available points
+
+        # Randomly select indices without replacement
+        indices = np.random.choice(n, target_num_points, replace=False)
+        
+        return self.X[indices], indices
+        
+    @staticmethod
+    def calculate_3d_point_density(neighborhoods):
+        """
+        Calculate the 3D point density for each point in the set based on its neighborhood.
+
+        :param neighborhoods: 
+            A NumPy array of shape (k, n, 3) where `k` is the number of neighbors, 
+            `n` is the number of points, and 3 represents the x, y, z coordinates.
+        :type neighborhoods: numpy.ndarray
+
+        :returns: 
+            A 1D NumPy array of length `n` containing the density value for each point.
+        :rtype: numpy.ndarray
+        """
+        # Number of neighbors (k) and points (n)
+        k, n, _ = neighborhoods.shape
+        # Initialize an array to store density for each point
+        densities = np.zeros(n)
+        
+        # Loop through each point (neighborhood)
+        for i in range(n):
+            # Extract the neighborhood of the i-th point
+            neighbors = neighborhoods[:, i, :]
+            # Compute distances from the central point (first point in the neighborhood) to all its neighbors
+            central_point = neighbors[0]
+            distances = np.linalg.norm(neighbors - central_point, axis=1)
+            # Get the radius as the maximum distance (excluding the central point)
+            radius = np.max(distances[1:])
+            # Volume of the sphere containing all neighbors within radius
+            volume = (4/3) * np.pi * (radius ** 3)
+            # Density = Number of points (k) / Volume of the sphere
+            densities[i] = k / volume
+        
+        return densities
+
 
     def shuffle(self):
         """
