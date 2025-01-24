@@ -10,25 +10,14 @@
 #include <filems/facade/FMSFactoryFacade.h>
 #include <filems/factory/FMSFacadeFactory.h>
 
-
-
 bool    logging::LOGGING_SHOW_TRACE,    logging::LOGGING_SHOW_DEBUG,
         logging::LOGGING_SHOW_INFO,     logging::LOGGING_SHOW_TIME,
         logging::LOGGING_SHOW_WARN,     logging::LOGGING_SHOW_ERR;
 
-
-
 using helios::filems::FMSFacadeFactory;
 
+void test_run(std::shared_ptr<Survey> survey, size_t numThreads){
 
-void test_run(){
-
-    std::string surveyPath = "../data/surveys/toyblocks/als_toyblocks.xml";
-    std::vector<std::string> assetsPath = {"../assets", "..", "../python/helios", "../python/helios/data"};
-    bool legNoiseDisabled = true;
-    bool rebuildScene = true;
-    size_t numThreads = std::thread::hardware_concurrency();
-    std::shared_ptr<Survey> survey = readSurveyFromXml(surveyPath, assetsPath, legNoiseDisabled, rebuildScene);
     survey->scanner->allOutputPaths =
             std::make_shared<std::vector<std::string>>(
                 std::vector<std::string>(0)
@@ -76,21 +65,22 @@ void test_run(){
         true,
         true
     );
-    // auto callback = std::make_shared<SimulationCycleCallbackWrap>();
-    // playback->callback = callback;
-    // playback->setCallbackFrequency(0);
-    // make start without threading
     playback->start();
-
 }
 
-
 int main(int argc, char *argv[]) {
+
+    std::string surveyPath = "../data/surveys/toyblocks/als_toyblocks.xml";
+    std::vector<std::string> assetsPath = {"../assets", "..", "../python/helios", "../python/helios/data"};
+    bool legNoiseDisabled = true;
+    bool rebuildScene = true;
+    size_t numThreads = std::thread::hardware_concurrency();
+    std::shared_ptr<Survey> survey = readSurveyFromXml(surveyPath, assetsPath, legNoiseDisabled, rebuildScene);
     
     for (int i = 0; i < std::stoi(argv[1]); i++) {
         auto start = std::chrono::high_resolution_clock::now(); 
 
-        test_run(); 
+        test_run(survey, numThreads);
         
         auto end = std::chrono::high_resolution_clock::now(); 
      
