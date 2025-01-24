@@ -170,3 +170,6 @@ install(
 
 include(FeatureSummary)
 feature_summary(WHAT ALL)
+
+add_executable(debug debug.cpp src/python/PyXMLReader.cpp)
+target_link_libraries(debug PUBLIC helios)
