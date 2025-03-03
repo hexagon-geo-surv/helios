@@ -86,7 +86,7 @@ bool LadLutTest::run(){
     double g3 = 0.673911;
 
     // Load spherical
-    std::string llPath = testDir + "spherical.txt";
+    std::string llPath = testDir + "data/test/spherical.txt";
     LadLutLoader loader;
     std::shared_ptr<LadLut> ladlut = loader.load(llPath);
     if(!validateLadLut(*ladlut)) return false;

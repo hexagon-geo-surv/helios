@@ -148,7 +148,13 @@ if(BUILD_PYTHON)
   install(TARGETS _helios DESTINATION .)
 endif()
 
-
+# Create test suite
+include(CTest)
+if(BUILD_TESTING)
+  add_executable(helios_test)
+  add_test(NAME helios_test COMMAND helios_test ${CMAKE_SOURCE_DIR})
+  target_link_libraries(helios_test PUBLIC helios)
+endif()
 
 # Traverse the source tree to add all relevant sources
 add_subdirectory(src)

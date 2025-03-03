@@ -265,10 +265,10 @@ bool FluxionumTest::testDesignMatrixBuilding(){
         "0.3 0.3 0.1;"
         "0.3 0.3 0.2"
     );
-    string const dmf1Path = testDir + "design_matrix_header.txt";
+    string const dmf1Path = testDir + "data/test/design_matrix_header.txt";
     DesignMatrix<double> dmf1(dmf1Path);
     if(!validateDesignMatrix(dmf1, hf1, Xf1)) return false;
-    string const dmf2Path = testDir + "design_matrix_nonheader.txt";
+    string const dmf2Path = testDir + "data/test/design_matrix_nonheader.txt";
     DesignMatrix<double> dmf2(dmf2Path);
     if(!validateDesignMatrix(dmf2, vector<string>(0), Xf1)) return false;
 
@@ -286,11 +286,11 @@ bool FluxionumTest::testDesignMatrixBuilding(){
         "0.3 0.3"
     );
     arma::Col<double> ttf1("0 0.1 0.2 0.3 0.4 0.5 0.6 0.8 1.0");
-    string const tdmf1Path = testDir + "temporal_design_matrix_header.txt";
+    string const tdmf1Path = testDir + "data/test/temporal_design_matrix_header.txt";
     TemporalDesignMatrix<double, double> tdmf1(tdmf1Path);
     if(!validateTemporalDesignMatrix(tdmf1, "t", htf1, ttf1, Xtf1))
         return false;
-    string const tdmf2Path = testDir + "temporal_design_matrix_nonheader.txt";
+    string const tdmf2Path = testDir + "data/test/temporal_design_matrix_nonheader.txt";
     TemporalDesignMatrix<double, double> tdmf2(tdmf2Path);
     if(!validateTemporalDesignMatrix(
         tdmf2, "time", vector<string>(0), ttf1, Xtf1
@@ -310,11 +310,11 @@ bool FluxionumTest::testDesignMatrixBuilding(){
         "0.3 0.3"
     );
     vector<int> iif1({0, 1, 2, 3, 4, 6, 8, 7, 5});
-    string const idmf1Path = testDir + "indexed_design_matrix_header.txt";
+    string const idmf1Path = testDir + "data/test/indexed_design_matrix_header.txt";
     IndexedDesignMatrix<int, double> idmf1(idmf1Path);
     if(!validateIndexedDesignMatrix(idmf1, "idx", hif1, iif1, Xif1))
         return false;
-    string const idmf2Path = testDir + "indexed_design_matrix_nonheader.txt";
+    string const idmf2Path = testDir + "data/test/indexed_design_matrix_nonheader.txt";
     IndexedDesignMatrix<int, double> idmf2(idmf2Path);
     if(!validateIndexedDesignMatrix(
         idmf2, "index", vector<string>(0), iif1, Xif1
@@ -616,13 +616,13 @@ bool FluxionumTest::testDiffDesignMatrix(){
     )) return false;
 
     // Load diff design matrix from file
-    string const ddmf1Path = testDir + "diff_design_matrix_header.txt";
+    string const ddmf1Path = testDir + "data/test/diff_design_matrix_header.txt";
     DiffDesignMatrix<double, double> ddmf1(ddmf1Path);
     if(!validateDiffDesignMatrix(
         ddmf1, EtimeName1, EcolNames1, Et1, EA1,
         DiffDesignMatrixType::FORWARD_FINITE_DIFFERENCES
     )) return false;
-    string const ddmf2Path = testDir + "diff_design_matrix_nonheader.txt";
+    string const ddmf2Path = testDir + "data/test/diff_design_matrix_nonheader.txt";
     DiffDesignMatrix<double, double> ddmf2(ddmf2Path);
     if(!validateDiffDesignMatrix(
         ddmf2, EtimeName2, vector<string>(0), Et3, EA3,

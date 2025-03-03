@@ -31,6 +31,7 @@ minimum-version = "3.18"
 [tool.scikit-build.cmake.define]
 BUILD_DOCS = "OFF"
 BUILD_PYTHON = "ON"
+BUILD_TESTING = "OFF"
 HELIOS_DATA_ANALYTICS = "0"
 HELIOS_BUDDING_METRICS = "0"
 # Executable built and installed during "pip install" should

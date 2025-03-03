@@ -1,18 +1,9 @@
-target_include_directories(
-  helios
-  PUBLIC
-  "."
-)
-
-target_sources(
-  helios
-  PRIVATE
-  "Tests.cpp"
-)
-
-add_executable(
-  helios_test
-  "Main.cpp"
-)
-
-target_link_libraries(helios_test PUBLIC helios)
+if(BUILD_TESTING)
+  target_sources(
+    helios_test
+    PRIVATE
+    "Main.cpp"
+    "Tests.cpp"
+  )
+  target_include_directories(helios_test PRIVATE ".")
+endif()

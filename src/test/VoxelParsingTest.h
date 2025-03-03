@@ -44,7 +44,7 @@ public:
 
 bool VoxelParsingTest::run(){
     double eps = 0.0001;
-    std::string vfPath = testDir + "semitransparent_voxels.vox";
+    std::string vfPath = testDir + "data/test/semitransparent_voxels.vox";
     VoxelFileParser vfp;
     std::vector<std::shared_ptr<DetailedVoxel>> dvoxels = vfp.parseDetailed(
         vfPath,

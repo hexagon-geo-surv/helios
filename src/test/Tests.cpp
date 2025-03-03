@@ -79,7 +79,7 @@ void doTests(std::string const & testDir){
     SerializationTest serializationTest;
     passed &= serializationTest.test(std::cout, TEST_COLOR);
 
-    AssetLoadingTest assetLoadingTest;
+    AssetLoadingTest assetLoadingTest(testDir);
     passed &= assetLoadingTest.test(std::cout, TEST_COLOR);
 
     SurveyCopyTest surveyCopyTest;
