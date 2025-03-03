@@ -113,6 +113,10 @@ target_include_directories(helios
     ${LASTOOLS_INCLUDE_DIRS}
 )
 
+if(MSVC)
+  target_compile_options(helios PRIVATE /bigobj)
+endif()
+
 # Expose version information to the C++ sources
 target_compile_definitions(helios
   PUBLIC
