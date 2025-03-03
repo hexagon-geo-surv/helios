@@ -133,11 +133,6 @@ if(HELIOS_BUDDING_METRICS)
   target_compile_definitions(helios PUBLIC BUDDING_METRICS=ON)
 endif()
 
-# # Add the HelIOS++ executable
-add_executable(helios++)
-
-target_link_libraries(helios++ PRIVATE helios)
-
 if(BUILD_PYTHON)
   include_directories(${Python_INCLUDE_DIRS})
   include_directories(${CMAKE_SOURCE_DIR}/src/python)
@@ -158,15 +153,6 @@ add_subdirectory(src)
 if(BUILD_DOCS)
   add_subdirectory(doc)
 endif()
-
-# Add installation rules for the Helios++ executable and Python bindings library
-
-# Define an installation rule that copies the executable to our Python package
-install(
-  TARGETS
-    helios++
-  DESTINATION helios/bin
-)
 
 include(FeatureSummary)
 feature_summary(WHAT ALL)
