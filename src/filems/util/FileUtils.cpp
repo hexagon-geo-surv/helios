@@ -1,4 +1,9 @@
 #include <FileUtils.h>
+
+// This works around a known issue in boost:
+// https://github.com/boostorg/serialization/issues/315
+#include <boost/throw_exception.hpp>
+
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/filesystem.hpp>
@@ -6,6 +11,7 @@
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/regex.hpp>
 #include <logging.hpp>
+
 namespace fs = boost::filesystem;
 
 char const FileUtils::pathSeparator =

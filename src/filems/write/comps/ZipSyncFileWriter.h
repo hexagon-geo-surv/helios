@@ -1,5 +1,9 @@
 #pragma once
 
+// This works around a known issue in boost:
+// https://github.com/boostorg/serialization/issues/315
+#include <boost/throw_exception.hpp>
+
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/iostreams/filter/zlib.hpp>
 #include <boost/iostreams/filtering_stream.hpp>

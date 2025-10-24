@@ -2,6 +2,10 @@
 
 #include "RotationOrder.h"
 
+// This works around a known issue in boost:
+// https://github.com/boostorg/serialization/issues/315
+#include <boost/throw_exception.hpp>
+
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 

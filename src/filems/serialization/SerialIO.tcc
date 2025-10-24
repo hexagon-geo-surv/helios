@@ -2,13 +2,14 @@
 
 #include <iostream>
 #include <fstream>
+
+// This works around a known issue in boost: https://github.com/boostorg/serialization/issues/315
+#include <boost/throw_exception.hpp>
+
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/iostreams/filter/zlib.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
-// This works around a known issue in boost: https://github.com/boostorg/serialization/issues/315
-#include <boost/throw_exception.hpp>
-
 #include <boost/serialization/unordered_map.hpp>
 
 #include <serial.h>
