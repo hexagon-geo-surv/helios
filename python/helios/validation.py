@@ -1,6 +1,6 @@
-from helios.utils import find_file, find_files, is_real_iterable
+from helios.utils import find_file, find_files, get_asset_directories, is_real_iterable
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 from pint import UnitRegistry
 from pydantic import validate_call, GetCoreSchemaHandler
@@ -16,6 +16,8 @@ import multiprocessing
 import numpy as np
 import os
 import xmlschema
+from datetime import date, datetime, time
+from enum import Enum
 
 from copy import deepcopy
 
@@ -39,6 +41,12 @@ def _unit_validator(default_unit):
 Angle = Annotated[float, _unit_validator(units.rad)]
 AngleVelocity = Annotated[float, _unit_validator(units.rad / units.s)]
 Frequency = Annotated[int, _unit_validator(units.Hz), annotated_types.Ge(0)]
+# NB: The reason we are not reusing the Frequency annotation here is because
+#     the backend uses doubles for scan frequency, but ints for other frequencies.
+#     Unifying them will either lead to loss of precision or to (correct) warnings
+#     during serialization. This can be fixed by changing types in the backend, but
+#     for the moment we stick with a separate annotation.
+ScanFrequency = Annotated[float, _unit_validator(units.Hz), annotated_types.Ge(0)]
 Length = Annotated[float, _unit_validator(units.m), annotated_types.Ge(0)]
 TimeInterval = Annotated[float, _unit_validator(units.s), annotated_types.Ge(0)]
 
@@ -206,6 +214,88 @@ def get_all_defaults(cls, dct):
     return defaults
 
 
+def _normalize_provenance_value(value: Any):
+    """Convert runtime values into YAML-safe primitives."""
+
+    if isinstance(value, (str, int, float, bool)) or value is None:
+        return value
+
+    if isinstance(value, Path):
+        path = value.expanduser()
+        if not path.is_absolute():
+            return str(path)
+
+        asset_dirs = [
+            Path(directory).expanduser().resolve()
+            for directory in get_asset_directories()
+        ]
+        relative_candidates = []
+        resolved_path = path.resolve()
+        for asset_dir in asset_dirs:
+            try:
+                relative_candidates.append(resolved_path.relative_to(asset_dir))
+            except ValueError:
+                continue
+
+        if relative_candidates:
+            shortest = min(
+                relative_candidates,
+                key=lambda candidate: (len(candidate.parts), len(str(candidate))),
+            )
+            return str(shortest)
+
+        if asset_dirs:
+            try:
+                return os.path.relpath(resolved_path, start=asset_dirs[0])
+            except ValueError:
+                return str(resolved_path)
+
+        try:
+            return os.path.relpath(resolved_path, start=Path.cwd())
+        except ValueError:
+            return str(resolved_path)
+
+    if isinstance(value, Enum):
+        return value.value
+
+    if isinstance(value, (datetime, date, time)):
+        return value.isoformat()
+
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+
+    if isinstance(value, np.generic):
+        return value.item()
+
+    if isinstance(value, Mapping):
+        return {
+            str(key): _normalize_provenance_value(item) for key, item in value.items()
+        }
+
+    if is_real_iterable(value):
+        return [_normalize_provenance_value(item) for item in value]
+
+    return str(value)
+
+
+def _iter_models_in_value(value: Any):
+    if isinstance(value, Model):
+        yield value
+        return
+
+    if isinstance(value, Mapping):
+        for item in value.values():
+            yield from _iter_models_in_value(item)
+        return
+
+    if isinstance(value, np.ndarray):
+        return
+
+    if is_real_iterable(value):
+        for item in value:
+            yield from _iter_models_in_value(item)
+
+
 @dataclass_transform()
 class ValidatedModelMetaClass(type):
     def __new__(cls, name, bases, dct, **kwargs):
@@ -369,6 +459,7 @@ class Model(metaclass=ValidatedModelMetaClass):
 
     def __new__(cls, *args, **kwargs):
         obj = super().__new__(cls)
+        obj._yaml_serializable = True
         if cls._cpp_class is not None:
             cpp_object = kwargs.pop("_cpp_object", None)
             if cpp_object is None:
@@ -383,6 +474,45 @@ class Model(metaclass=ValidatedModelMetaClass):
     def _pre_set(self, field, value):
         """Hook that is called before a property is set"""
         pass
+
+    def _serialization_filename(self) -> str:
+        """Hook for naming YAML files in shallow serialization."""
+
+        return f"{self.__class__.__name__.lower()}.yaml"
+
+    def _serialization_binary_filename(self) -> str:
+        """Hook for naming binary sidecar files."""
+
+        return f"{Path(self._serialization_filename()).stem}.bin"
+
+    @validate_call
+    def to_yaml(self, path: Path, shallow: bool = True, binary: bool = False):
+        from helios.serialization import serialize_model_to_yaml
+
+        if not getattr(self, "_yaml_serializable", True):
+            raise RuntimeError(
+                f"{self.__class__.__name__} cannot be serialized to YAML because it "
+                "was implicitly constructed via a parent object's from_xml constructor."
+            )
+
+        return serialize_model_to_yaml(
+            self, path=path.expanduser(), shallow=shallow, binary=binary
+        )
+
+    @validate_call
+    def to_bundle(self, path: Path, binary: bool = False, force: bool = False):
+        from helios.serialization import serialize_model_to_bundle
+
+        return serialize_model_to_bundle(
+            self, path=path.expanduser(), binary=binary, force=force
+        )
+
+    @classmethod
+    @validate_call
+    def from_yaml(cls, path: Path):
+        from helios.serialization import deserialize_model_from_yaml
+
+        return deserialize_model_from_yaml(cls, path=path.expanduser())
 
     @classmethod
     def __get_pydantic_core_schema__(
@@ -452,6 +582,68 @@ class Model(metaclass=ValidatedModelMetaClass):
             _check_if_exists(value)
             info[value] = self
 
+    def _set_yaml_serializable(self, value: bool, recursive: bool = False, _seen=None):
+        self._yaml_serializable = value
+
+        if not recursive:
+            return
+
+        if _seen is None:
+            _seen = set()
+
+        obj_id = id(self)
+        if obj_id in _seen:
+            return
+        _seen.add(obj_id)
+
+        for field in get_all_annotations(self.__class__):
+            for model in _iter_models_in_value(getattr(self, field)):
+                model._set_yaml_serializable(value, recursive=True, _seen=_seen)
+
+    def _disable_yaml_serialization_for_descendants(self, _seen=None):
+        if _seen is None:
+            _seen = set()
+
+        obj_id = id(self)
+        if obj_id in _seen:
+            return
+        _seen.add(obj_id)
+
+        for field in get_all_annotations(self.__class__):
+            for model in _iter_models_in_value(getattr(self, field)):
+                model._set_yaml_serializable(False, recursive=True, _seen=_seen)
+
+    def _set_constructor_provenance(self, method: str, **kwargs):
+        self._provenance = {
+            "constructor": {
+                "method": method,
+                "kwargs": {
+                    key: _normalize_provenance_value(value)
+                    for key, value in kwargs.items()
+                },
+            },
+            "operations": [],
+        }
+
+    def _append_operation_provenance(self, method: str, **kwargs):
+        provenance = getattr(self, "_provenance", None)
+        if not isinstance(provenance, dict):
+            provenance = {}
+
+        operations = provenance.setdefault("operations", [])
+        operations.append(
+            {
+                "method": method,
+                "kwargs": {
+                    key: _normalize_provenance_value(value)
+                    for key, value in kwargs.items()
+                    if value is not None
+                },
+            }
+        )
+
+        self._provenance = provenance
+
     def _reconstruct_from_model_fields(self, memo):
         cls = self.__class__
         obj_id = id(self)
@@ -506,6 +698,11 @@ class Model(metaclass=ValidatedModelMetaClass):
             finally:
                 reconstructed._during_init = False
 
+            if hasattr(self, "_provenance"):
+                reconstructed._provenance = deepcopy(self._provenance, memo)
+            if hasattr(self, "_yaml_serializable"):
+                reconstructed._yaml_serializable = self._yaml_serializable
+
             return reconstructed
         else:
             reconstructed = cls.__new__(cls)
@@ -516,6 +713,11 @@ class Model(metaclass=ValidatedModelMetaClass):
                 kwargs[field] = deepcopy(getattr(self, field), memo)
 
             reconstructed.__init__(**kwargs)
+
+            if hasattr(self, "_provenance"):
+                reconstructed._provenance = deepcopy(self._provenance, memo)
+            if hasattr(self, "_yaml_serializable"):
+                reconstructed._yaml_serializable = self._yaml_serializable
 
             return reconstructed
 

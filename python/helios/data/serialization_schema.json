@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/version_0"
+    }
+  ],
+  "$defs": {
+    "version_0": {
+      "type": "object",
+      "required": [
+        "serialization_major_version",
+        "serialization_minor_version",
+        "model_class",
+        "fields"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "serialization_major_version": {
+          "const": 0
+        },
+        "serialization_minor_version": {
+          "const": 0
+        },
+        "model_class": {
+          "enum": [
+            "helios.leg.Leg",
+            "helios.platforms.DynamicPlatformSettings",
+            "helios.platforms.Platform",
+            "helios.platforms.PlatformSettings",
+            "helios.platforms.PlatformSettingsBase",
+            "helios.platforms.StaticPlatformSettings",
+            "helios.platforms.TrajectorySettings",
+            "helios.scanner.ConicOpticsScannerSettings",
+            "helios.scanner.LineOpticsScannerSettings",
+            "helios.scanner.OscillatingOpticsScannerSettings",
+            "helios.scanner.RisleyOpticsScannerSettings",
+            "helios.scanner.RotatingOpticsScannerSettings",
+            "helios.scanner.Scanner",
+            "helios.scanner.ScannerSettings",
+            "helios.scanner.ScannerSettingsBase",
+            "helios.scene.BoundingBox",
+            "helios.scene.Material",
+            "helios.scene.ScenePart",
+            "helios.scene.StaticScene",
+            "helios.settings.ExecutionSettings",
+            "helios.settings.FullWaveformSettings",
+            "helios.settings.OutputSettings",
+            "helios.survey.Survey"
+          ]
+        },
+        "fields": {
+          "type": "object"
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "constructor": {
+              "type": "object",
+              "required": [
+                "method",
+                "kwargs"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "method": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "kwargs": {
+                  "type": "object"
+                }
+              }
+            },
+            "operations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "method",
+                  "kwargs"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "kwargs": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "binary": {
+          "type": "object",
+          "required": [
+            "method",
+            "path"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "method": {
+              "type": "string",
+              "minLength": 1
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    }
+  }
+}
