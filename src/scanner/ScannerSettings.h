@@ -296,8 +296,8 @@ public:
          << "\ttemplate.beamDivAngle = " << baseTemplate->beamDivAngle << "\n"
          << "\ttemplate.trajectoryTimeInterval = "
          << baseTemplate->trajectoryTimeInterval << "\n"
-         << "\ttemplate.opticsWarmupPhase_s = " << baseTemplate->opticsWarmupPhase_s
-         << "\n";
+         << "\ttemplate.opticsWarmupPhase_s = "
+         << baseTemplate->opticsWarmupPhase_s << "\n";
     }
     ss << "active = " << active << "\n"
        << "headRotatePerSec_rad = " << headRotatePerSec_rad << "\n"

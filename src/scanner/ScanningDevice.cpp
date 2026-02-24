@@ -1,11 +1,11 @@
 #include <ScanningDevice.h>
+#include <cmath>
 #include <logging.hpp>
 #include <maths/EnergyMaths.h>
 #include <maths/MathConstants.h>
 #include <maths/model/BaseEnergyModel.h>
 #include <maths/model/ImprovedEnergyModel.h>
 #include <scanner/detector/AbstractDetector.h>
-#include <cmath>
 #if DATA_ANALYTICS >= 2
 #include <dataanalytics/HDA_GlobalVars.h>
 using namespace helios::analytics;
@@ -261,8 +261,8 @@ ScanningDevice::doSimStep(
 void
 ScanningDevice::applyWarmupPhase(int const simFreq_Hz)
 {
-  if (state_opticsWarmupApplied || cfg_setting_opticsWarmupPhase_s <= 0.0 || simFreq_Hz <= 0)
-  {
+  if (state_opticsWarmupApplied || cfg_setting_opticsWarmupPhase_s <= 0.0 ||
+      simFreq_Hz <= 0) {
     state_opticsWarmupApplied = true;
     return;
   }

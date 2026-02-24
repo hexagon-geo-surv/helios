@@ -176,7 +176,10 @@ public:
    * @brief Get warmup phase currently set on deflector
    * @return Warmup phase in seconds
    */
-  virtual double getOpticsWarmupPhase_s() { return cfg_setting_opticsWarmupPhase_s; }
+  virtual double getOpticsWarmupPhase_s()
+  {
+    return cfg_setting_opticsWarmupPhase_s;
+  }
   /**
    * @brief Get the exact current beam angle.
    *

@@ -1222,11 +1222,11 @@ XmlAssetsLoader::createScannerSettingsFromXml(
   }
   // Optional optics warmup phase in seconds.
   if (XmlUtils::hasAttribute(node, "opticsWarmupPhase_s")) {
-    settings->opticsWarmupPhase_s = XmlUtils::getAttributeCast<double>(
-      node,
-      "opticsWarmupPhase_s",
-      template1->opticsWarmupPhase_s,
-      defaultScannerSettingsMsg);
+    settings->opticsWarmupPhase_s =
+      XmlUtils::getAttributeCast<double>(node,
+                                         "opticsWarmupPhase_s",
+                                         template1->opticsWarmupPhase_s,
+                                         defaultScannerSettingsMsg);
   } else {
     settings->opticsWarmupPhase_s = template1->opticsWarmupPhase_s;
   }
