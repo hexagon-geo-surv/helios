@@ -15,7 +15,7 @@
                        headRotatePerSec_deg="60"
                        headRotateStart_deg="0"
                        headRotateStop_deg="20"
-                       warmupPhase_s="0.002"/>
+                       opticsWarmupPhase_s="0.002"/>
     </leg>
   </survey>
 
