@@ -14,7 +14,6 @@ namespace py = pybind11;
 using fluxionum::DesignMatrix;
 using fluxionum::TemporalDesignMatrix;
 
-// std::shared_ptr<InterpolatedMovingPlatformEgg>
 std::shared_ptr<Platform>
 load_interpolated_platform(std::shared_ptr<LinearPathPlatform> basePlatform,
                            py::array trajectory,

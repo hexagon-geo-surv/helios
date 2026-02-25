@@ -2,7 +2,7 @@ from helios.scene import StaticScene
 from helios.utils import (
     classonlymethod,
     get_asset_directories,
-    _validate_trajectory_array,
+    _prepare_trajectory_array,
 )
 from helios.validation import (
     AssetPath,
@@ -195,7 +195,7 @@ class Platform(Printable, Model, cpp_class=_helios.Platform):
         # Validate the XML
         validate_xml_file(platform_file, "xsd/platform.xsd")
 
-        _validate_trajectory_array(trajectory)
+        trajectory = _prepare_trajectory_array(trajectory)
 
         _cpp_platform = _helios.read_platform_from_xml(
             str(platform_file), [str(p) for p in get_asset_directories()], platform_id
