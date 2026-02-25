@@ -147,25 +147,31 @@ def eval_no_infinite_run(dirname, captured):
 @pytest.mark.parametrize(
     "survey_xml, survey_xml_nowarmup, check_time",
     [
-        # not checking time for rotating since due to the limited effective scan angles, the time difference between simulated points does not match the elapsed simulated time 
-        pytest.param("test_warmup_rotating.xml", "test_warmup_rotating_nowarmup.xml", 0),
-        pytest.param("test_warmup_oscillating.xml", "test_warmup_oscillating_nowarmup.xml", 1),
+        # not checking time for rotating since due to the limited effective scan angles, the time difference between simulated points does not match the elapsed simulated time
+        pytest.param(
+            "test_warmup_rotating.xml", "test_warmup_rotating_nowarmup.xml", 0
+        ),
+        pytest.param(
+            "test_warmup_oscillating.xml", "test_warmup_oscillating_nowarmup.xml", 1
+        ),
         pytest.param("test_warmup_conic.xml", "test_warmup_conic_nowarmup.xml", 1),
-        pytest.param("test_warmup_risley.xml", "test_warmup_risley_nowarmup.xml", 1)
+        pytest.param("test_warmup_risley.xml", "test_warmup_risley_nowarmup.xml", 1),
     ],
 )
-def test_optics_warmup_phase_pyh(output_dir, survey_xml, survey_xml_nowarmup, check_time):
+def test_optics_warmup_phase_pyh(
+    output_dir, survey_xml, survey_xml_nowarmup, check_time
+):
     dirname_pyh = run_helios_pyhelios(
         Path("data") / "test" / survey_xml,
         output=output_dir,
         las_output=False,
-        start_time="2022-01-01 00:00:00"
+        start_time="2022-01-01 00:00:00",
     )
     dirname_pyh_nowarmup = run_helios_pyhelios(
         Path("data") / "test" / survey_xml_nowarmup,
         output=output_dir,
         las_output=False,
-        start_time="2022-01-01 00:00:00"
+        start_time="2022-01-01 00:00:00",
     )
     eval_optics_warmup_phase(dirname_pyh, dirname_pyh_nowarmup, check_time)
 
@@ -174,27 +180,37 @@ def test_optics_warmup_phase_pyh(output_dir, survey_xml, survey_xml_nowarmup, ch
 @pytest.mark.parametrize(
     "survey_xml, survey_xml_nowarmup, check_time",
     [
-        # not checking time for rotating since due to the limited effective scan angles, the time difference between simulated points does not match the elapsed simulated time 
-        pytest.param("test_warmup_rotating.xml", "test_warmup_rotating_nowarmup.xml", 0),
-        pytest.param("test_warmup_oscillating.xml", "test_warmup_oscillating_nowarmup.xml", 1),
+        # not checking time for rotating since due to the limited effective scan angles, the time difference between simulated points does not match the elapsed simulated time
+        pytest.param(
+            "test_warmup_rotating.xml", "test_warmup_rotating_nowarmup.xml", 0
+        ),
+        pytest.param(
+            "test_warmup_oscillating.xml", "test_warmup_oscillating_nowarmup.xml", 1
+        ),
         pytest.param("test_warmup_conic.xml", "test_warmup_conic_nowarmup.xml", 1),
-        pytest.param("test_warmup_risley.xml", "test_warmup_risley_nowarmup.xml", 1)
+        pytest.param("test_warmup_risley.xml", "test_warmup_risley_nowarmup.xml", 1),
     ],
 )
-def test_optics_warmup_phase_exe(output_dir, survey_xml, survey_xml_nowarmup, check_time):
+def test_optics_warmup_phase_exe(
+    output_dir, survey_xml, survey_xml_nowarmup, check_time
+):
     dirname_exe = run_helios_executable(
-        Path("data") / "test" / survey_xml, output_dir,
-        options=["--gpsStartTime", "2022-01-01 00:00:00"]
+        Path("data") / "test" / survey_xml,
+        output_dir,
+        options=["--gpsStartTime", "2022-01-01 00:00:00"],
     )
     dirname_exe_nowarmup = run_helios_executable(
-        Path("data") / "test" / survey_xml_nowarmup, output_dir,
-        options=["--gpsStartTime", "2022-01-01 00:00:00"]
+        Path("data") / "test" / survey_xml_nowarmup,
+        output_dir,
+        options=["--gpsStartTime", "2022-01-01 00:00:00"],
     )
     eval_optics_warmup_phase(dirname_exe, dirname_exe_nowarmup, check_time)
 
 
 def eval_optics_warmup_phase(dirname, dirname_nowarmup, check_time):
-    assert dirname != dirname_nowarmup, "Output directories should be different for warmup and no warmup runs"
+    assert (
+        dirname != dirname_nowarmup
+    ), "Output directories should be different for warmup and no warmup runs"
     # read simulated point clouds and their GPS time
     points_warmup = np.loadtxt(dirname / "leg000_points.xyz")
     points_nowarmup = np.loadtxt(dirname_nowarmup / "leg000_points.xyz")
@@ -202,11 +218,14 @@ def eval_optics_warmup_phase(dirname, dirname_nowarmup, check_time):
     gps_time_nowarmup = points_nowarmup[:, 10]
 
     # criterion 1: the one with warmup should be a subset of the one without warmup
-    points_nowarmup_clipped = points_nowarmup[gps_time_nowarmup >= gps_time_nowarmup.min() + 0.002]
+    points_nowarmup_clipped = points_nowarmup[
+        gps_time_nowarmup >= gps_time_nowarmup.min() + 0.002
+    ]
     # Allow difference in number of points by up to 1
-    assert abs(len(points_warmup) - len(points_nowarmup_clipped)) <= 1, \
-        f"Point count difference too large: {len(points_warmup)} vs {len(points_nowarmup_clipped)}"
-    
+    assert (
+        abs(len(points_warmup) - len(points_nowarmup_clipped)) <= 1
+    ), f"Point count difference too large: {len(points_warmup)} vs {len(points_nowarmup_clipped)}"
+
     # Use KDTree to find nearest neighbors (use the larger set as the tree)
     if len(points_warmup) <= len(points_nowarmup_clipped):
         tree = KDTree(points_nowarmup_clipped[:, :3])
@@ -214,19 +233,20 @@ def eval_optics_warmup_phase(dirname, dirname_nowarmup, check_time):
     else:
         tree = KDTree(points_warmup[:, :3])
         distances, _ = tree.query(points_nowarmup_clipped[:, :3])
-    
+
     # Make sure that 90 percent of points are within tolerance
     tol = 0.05
-    assert np.sum(distances <= tol) >= 0.9 * min(len(points_warmup), len(points_nowarmup_clipped)), \
-        f"Too many points differ by more than {tol} meters: {np.sum(distances > tol)} out of {len(distances)}"
+    assert np.sum(distances <= tol) >= 0.9 * min(
+        len(points_warmup), len(points_nowarmup_clipped)
+    ), f"Too many points differ by more than {tol} meters: {np.sum(distances > tol)} out of {len(distances)}"
 
     # criterion 2: Both should start at the same GPS time
     assert np.isclose(gps_time_warmup.min(), gps_time_nowarmup.min())
-    
+
     # criterion 3: delta t should be 0.01 seconds for warmup and 0.012 seconds for no warmup
     if check_time:
-        delta_t_warmup = (gps_time_warmup.max() - gps_time_warmup.min())
-        delta_t_nowarmup = (gps_time_nowarmup.max() - gps_time_nowarmup.min())
+        delta_t_warmup = gps_time_warmup.max() - gps_time_warmup.min()
+        delta_t_nowarmup = gps_time_nowarmup.max() - gps_time_nowarmup.min()
         # max_duration is not as expected?
         assert np.isclose(delta_t_warmup, 0.01, atol=1e-4)
         assert np.isclose(delta_t_nowarmup, 0.012, atol=1e-4)
