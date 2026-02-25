@@ -2,11 +2,11 @@
 <document>
 
   <!-- RISLEY optics (RisleyBeamDeflector) -->
-  <survey name="test_warmup_risley"
+  <survey name="test_nowarmup_risley"
           scene="data/scenes/demo/box_scene.xml#box_scene"
           platform="data/platforms.xml#tripod"
           scanner="data/scanners_tls.xml#livox_mid-70">
-    <leg id="risley_no_warmup" maxDuration_s="0.012">
+    <leg maxDuration_s="0.012">
       <platformSettings x="0" y="0" z="0" onGround="false"/>
       <scannerSettings active="true"
                        pulseFreq_hz="100000"
