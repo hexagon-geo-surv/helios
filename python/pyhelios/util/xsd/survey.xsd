@@ -31,7 +31,7 @@
                     <xs:attribute type="xs:float" name="beamDivergenceRad" use="optional"/>
                     <xs:attribute type="xs:float" name="verticalResolution_deg" use="optional"/>
                     <xs:attribute type="xs:float" name="horizontalResolution_deg" use="optional"/>
-                    <xs:attribute type="xs:float" name="warmupPhase_s" use="optional"/>
+                    <xs:attribute type="xs:float" name="opticsWarmupPhase_s" use="optional"/>
                 </xs:extension>
             </xs:simpleContent>
         </xs:complexType>
@@ -178,6 +178,7 @@
                                                         <xs:attribute type="xs:float" name="beamDivergenceRad" use="optional"/>
                                                         <xs:attribute type="xs:float" name="verticalResolution_deg" use="optional"/>
                                                         <xs:attribute type="xs:float" name="horizontalResolution_deg" use="optional"/>
+                                                        <xs:attribute type="xs:float" name="opticsWarmupPhase_s" use="optional"/>
                                                     </xs:extension>
                                                 </xs:simpleContent>
                                             </xs:complexType>
