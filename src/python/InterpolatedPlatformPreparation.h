@@ -18,4 +18,5 @@ std::shared_ptr<Platform>
 load_interpolated_platform(std::shared_ptr<LinearPathPlatform> basePlatform,
                            py::array trajectory,
                            std::string rotspec,
-                           bool syncGPSTime);
+                           bool syncGPSTime,
+                           bool isRollPitchYawInRadians);

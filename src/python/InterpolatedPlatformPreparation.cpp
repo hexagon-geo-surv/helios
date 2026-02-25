@@ -4,7 +4,8 @@ std::shared_ptr<Platform>
 load_interpolated_platform(std::shared_ptr<LinearPathPlatform> basePlatform,
                            py::array trajectory,
                            std::string rotspec,
-                           bool syncGPSTime)
+                           bool syncGPSTime,
+                           bool isRollPitchYawInRadians)
 {
   std::shared_ptr<InterpolatedMovingPlatformEgg> platform =
     std::make_shared<InterpolatedMovingPlatformEgg>();
@@ -111,5 +112,10 @@ load_interpolated_platform(std::shared_ptr<LinearPathPlatform> basePlatform,
   platform->attitudeYNoiseSource = basePlatform->attitudeYNoiseSource;
   platform->attitudeZNoiseSource = basePlatform->attitudeZNoiseSource;
 
+  if (!isRollPitchYawInRadians) {
+    for (size_t j = 0; j < 3; ++j) {
+      platform->tdm->setColumn(j, platform->tdm->getColumn(j) * PI_OVER_180);
+    }
+  }
   return platform;
 }
