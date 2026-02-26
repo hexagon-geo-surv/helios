@@ -91,6 +91,11 @@ load_interpolated_platform(std::shared_ptr<LinearPathPlatform> basePlatform,
   platform->startTime = startTime;
   platform->tdm->shiftTime(-startTime);
   platform->syncGPSTime = syncGPSTime;
+  if (!isRollPitchYawInRadians) {
+    for (size_t j = 0; j < 3; ++j) {
+      platform->tdm->setColumn(j, platform->tdm->getColumn(j) * PI_OVER_180);
+    }
+  }
 
   platform->ddm = platform->tdm->toDiffDesignMatrixPointer(
     fluxionum::DiffDesignMatrixType::FORWARD_FINITE_DIFFERENCES, false);
@@ -112,10 +117,5 @@ load_interpolated_platform(std::shared_ptr<LinearPathPlatform> basePlatform,
   platform->attitudeYNoiseSource = basePlatform->attitudeYNoiseSource;
   platform->attitudeZNoiseSource = basePlatform->attitudeZNoiseSource;
 
-  if (!isRollPitchYawInRadians) {
-    for (size_t j = 0; j < 3; ++j) {
-      platform->tdm->setColumn(j, platform->tdm->getColumn(j) * PI_OVER_180);
-    }
-  }
   return platform;
 }
