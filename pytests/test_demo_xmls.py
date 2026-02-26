@@ -228,6 +228,14 @@ def get_paths(survey_file):
             (Path(WORKING_DIR) / "data" / "surveys" / "dyn" / "tls_tree1_dyn.xml"),
             id="tls_tree1_dyn.xml",
         ),
+        pytest.param(
+            (Path(WORKING_DIR) / "data" / "test" / "test_max_duration.xml"),
+            id="test_max_duration.xml",
+        ),
+        pytest.param(
+            (Path(WORKING_DIR) / "data" / "test" / "test_warmup_risley.xml"),
+            id="test_warmup.xml",
+        ),
     ],
 )
 def test_xmls(f_survey):
