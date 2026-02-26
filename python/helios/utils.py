@@ -308,10 +308,6 @@ def _prepare_trajectory_array(trajectory: np.ndarray) -> np.ndarray:
     names = trajectory.dtype.names
     req_set = set(required_fields)
     names_set = set(names)
-    if names is None:
-        raise ValueError(
-            "Trajectory must be a structured NumPy array with named fields."
-        )
 
     if names_set != req_set:
         missing = [f for f in required_fields if f not in names_set]
