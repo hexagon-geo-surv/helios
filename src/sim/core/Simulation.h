@@ -19,6 +19,8 @@
 #include <exception>
 #include <vector>
 
+class Scene;
+
 /**
  * @brief Class representing a simulation
  */
@@ -61,6 +63,11 @@ protected:
    * @see Scanner
    */
   std::shared_ptr<Scanner> mScanner = nullptr;
+  /**
+   * @brief Scene used by the simulation
+   * @see Scene
+   */
+  Scene* mScene = nullptr;
 
   /**
    * @brief The handler for simulation steps, it also contains the discrete
@@ -347,11 +354,23 @@ public:
    */
   void setScanner(std::shared_ptr<Scanner> scanner);
   /**
+   * @brief Set scene for the simulation
+   * @param scene New scene for the simulation
+   * @see Simulation::mScene
+   */
+  void setScene(Scene& scene);
+  /**
    * @brief Obtain simulation scanner
    * @return Simulation scanner
    * @see Simulation::mScanner
    */
   inline std::shared_ptr<Scanner> getScanner() { return this->mScanner; }
+  /**
+   * @brief Obtain simulation scene
+   * @return Simulation scene
+   * @see Simulation::mScene
+   */
+  Scene& getScene() const;
 
   /**
    * @brief Check if simulation is paused (true) or not (false)

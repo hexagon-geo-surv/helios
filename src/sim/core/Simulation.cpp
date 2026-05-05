@@ -5,9 +5,11 @@
 using namespace std::chrono;
 
 #include "AbstractDetector.h"
+#include <HeliosException.h>
 #include <platform/InterpolatedMovingPlatform.h>
 #include <platform/InterpolatedMovingPlatformEgg.h>
 #include <scanner/BuddingScanningPulseProcess.h>
+#include <scene/Scene.h>
 #include <scene/dynamic/DynScene.h>
 #ifdef DATA_ANALYTICS
 #include <dataanalytics/HDA_SimStepRecorder.h>
@@ -70,7 +72,7 @@ Simulation::prepareSimulation(int simFrequency_hz)
   // Prepare scanner
   this->mScanner->prepareSimulation(legacyEnergyModel);
   this->mScanner->buildScanningPulseProcess(
-    parallelizationStrategy, taskDropper, threadPool);
+    parallelizationStrategy, taskDropper, threadPool, getScene());
 
   // Prepare simulation
   setSimFrequency(this->mScanner->getPulseFreq_Hz());
@@ -78,7 +80,7 @@ Simulation::prepareSimulation(int simFrequency_hz)
   stepGpsTime_ns = 1000000000. * stepLoop.getPeriod();
 
   // Prepare scene (mostly for dynamic scenes)
-  mScanner->platform->scene->prepareSimulation(simFrequency_hz);
+  getScene().prepareSimulation(simFrequency_hz);
 }
 
 void
@@ -93,8 +95,8 @@ Simulation::doSimStep()
 
   // Ordered execution of simulation components
   mScanner->platform->doSimStep(mScanner->getPulseFreq_Hz());
-  mScanner->doSimStep(mCurrentLegIndex, currentGpsTime_ns);
-  mScanner->platform->scene->doSimStep();
+  mScanner->doSimStep(mCurrentLegIndex, currentGpsTime_ns, getScene());
+  getScene().doSimStep();
   currentGpsTime_ns += stepGpsTime_ns;
   if (currentGpsTime_ns > 604800000000000.)
     currentGpsTime_ns -= 604800000000000.;
@@ -649,4 +651,19 @@ Simulation::setScanner(std::shared_ptr<Scanner> scanner)
   logging::INFO("Simulation: Scanner changed!");
 
   this->mScanner = std::shared_ptr<Scanner>(scanner);
+}
+
+void
+Simulation::setScene(Scene& scene)
+{
+  this->mScene = &scene;
+}
+
+Scene&
+Simulation::getScene() const
+{
+  if (mScene == nullptr) {
+    throw HeliosException("Simulation has no scene assigned");
+  }
+  return *mScene;
 }

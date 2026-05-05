@@ -8,6 +8,7 @@
 
 #include "MovingPlatform.h"
 #include "PrintUtils.h"
+#include <logging.hpp>
 using namespace std;
 
 // ***  CONSTRUCTION / DESTRUCTION  *** //

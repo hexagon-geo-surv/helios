@@ -138,7 +138,9 @@ SingleScanner::applySettings(std::shared_ptr<ScannerSettings> settings,
 }
 
 void
-SingleScanner::doSimStep(unsigned int legIndex, double const currentGpsTime)
+SingleScanner::doSimStep(unsigned int legIndex,
+                         double const currentGpsTime,
+                         Scene& scene)
 {
   // Check whether the scanner is active or not
   bool const _isActive = isActive();
@@ -161,7 +163,7 @@ SingleScanner::doSimStep(unsigned int legIndex, double const currentGpsTime)
     return;
 
   // Handle trajectory output
-  handleTrajectoryOutput(currentGpsTime);
+  handleTrajectoryOutput(currentGpsTime, scene);
 }
 
 void

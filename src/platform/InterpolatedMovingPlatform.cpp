@@ -1,3 +1,4 @@
+#include <logging.hpp>
 #include <maths/Directions.h>
 #include <platform/InterpolatedMovingPlatform.h>
 #include <platform/trajectory/DesignTrajectoryFunction.h>

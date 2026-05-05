@@ -8,6 +8,7 @@
 #include "AbstractDetector.h"
 #include <filems/facade/FMSFacade.h>
 #include <scanner/PulseRecord.h>
+#include <scene/Scene.h>
 
 #include <glm/glm.hpp>
 
@@ -16,10 +17,11 @@
 // ***  CONSTRUCTION / DESTRUCTION  *** //
 // ************************************ //
 AbstractPulseRunnable::AbstractPulseRunnable(std::shared_ptr<Scanner> scanner,
+                                             Scene& scene,
                                              SimulatedPulse const& pulse)
   : scanner(scanner)
   , pulse(pulse)
-  , scene(*(scanner->platform->scene))
+  , scene(scene)
 {
   // Assign corresponding measurement error function
   AbstractDetector& ad = *scanner->getDetector();

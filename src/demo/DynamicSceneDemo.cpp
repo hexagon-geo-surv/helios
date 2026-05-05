@@ -98,7 +98,7 @@ DynamicSceneDemo::buildCanvas(shared_ptr<Survey> survey)
 
   // Assuming the scene is already dynamic, try to cast it
   try {
-    DynScene& ds = dynamic_cast<DynScene&>(*survey->scanner->platform->scene);
+    DynScene& ds = dynamic_cast<DynScene&>(*survey->scene);
     canvas = make_shared<VHSceneCanvas>(ds,
                                         canvasTitle,
                                         normalsKeyboardCallback,
@@ -110,8 +110,8 @@ DynamicSceneDemo::buildCanvas(shared_ptr<Survey> survey)
   catch (std::bad_cast& bcex) {
     std::cout << "DynamicSceneDemo received a non dynamic scene but a "
               << "basic one. In consequence, it was wrapped." << std::endl;
-    dsWrapper = make_shared<DynScene>(
-      *static_pointer_cast<StaticScene>(survey->scanner->platform->scene));
+    dsWrapper =
+      make_shared<DynScene>(*static_pointer_cast<StaticScene>(survey->scene));
     canvas = make_shared<VHSceneCanvas>(*dsWrapper,
                                         canvasTitle,
                                         normalsKeyboardCallback,

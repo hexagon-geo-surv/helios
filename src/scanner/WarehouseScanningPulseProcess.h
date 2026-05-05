@@ -89,6 +89,7 @@ public:
    */
   WarehouseScanningPulseProcess(
     std::shared_ptr<Scanner> scanner,
+    Scene& scene,
     PulseTaskDropper& dropper,
     PulseWarehouseThreadPool& pool,
     RandomnessGenerator<double>& randGen1,

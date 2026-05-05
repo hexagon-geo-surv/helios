@@ -1,4 +1,5 @@
 #include "SimplePhysicsPlatform.h"
+#include <logging.hpp>
 
 // ***  CONSTRUCTION / DESTRUCTION  *** //
 // ************************************ //

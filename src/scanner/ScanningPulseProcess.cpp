@@ -3,8 +3,9 @@
 
 // ***  CONSTRUCTION / DESTRUCTION  *** //
 // ************************************ //
-ScanningPulseProcess::ScanningPulseProcess(std::shared_ptr<Scanner> scanner)
-  : ptf(*(scanner->platform->scene))
+ScanningPulseProcess::ScanningPulseProcess(std::shared_ptr<Scanner> scanner,
+                                           Scene& scene)
+  : ptf(scene)
   , scanner(scanner)
 {
 }

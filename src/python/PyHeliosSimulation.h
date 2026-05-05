@@ -161,7 +161,7 @@ public:
    * @return Platform used by the simulation
    */
   Platform* getPlatform() { return survey->scanner->platform.get(); }
-  Scene* getScene() { return survey->scanner->platform->scene.get(); }
+  Scene* getScene() { return survey->scene.get(); }
   /**
    * @brief Obtain the number of legs
    *

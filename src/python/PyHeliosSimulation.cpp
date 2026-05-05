@@ -60,22 +60,14 @@ PyHeliosSimulation::~PyHeliosSimulation()
   if (survey != nullptr) {
     // Release shared resources
     bool sharedDetector = false;
-    bool sharedScene = false;
     std::shared_ptr<AbstractDetector> ad = survey->scanner->getDetector();
-    std::shared_ptr<Scene> scene = survey->scanner->platform->scene;
     for (PyHeliosSimulation* copy : copies) {
       if (copy->survey->scanner->getDetector() == ad) {
         sharedDetector = true;
       }
-      if (copy->survey->scanner->platform->scene == scene) {
-        sharedScene = true;
-      }
     }
     if (!sharedDetector) {
       survey->scanner->getDetector()->shutdown();
-    }
-    if (!sharedScene) {
-      survey->scanner->platform->scene->shutdown();
     }
     // Update copy tracking for non-destroyed copies
     for (PyHeliosSimulation* copy : copies) {
@@ -413,8 +405,7 @@ std::shared_ptr<DynScene>
 PyHeliosSimulation::_getDynScene()
 {
   try {
-    return std::dynamic_pointer_cast<DynScene>(
-      survey->scanner->platform->scene);
+    return std::dynamic_pointer_cast<DynScene>(survey->scene);
   } catch (std::exception& ex) {
     throw HeliosException(
       "Failed to obtain dynamic scene. Current scene is not dynamic.");

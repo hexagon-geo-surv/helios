@@ -49,7 +49,7 @@ TEST_CASE("Survey Copy Test")
   survey->legs[0]->mPlatformSettings->onGround = false;
 
   std::shared_ptr<Scene> baseScene = std::make_shared<Scene>();
-  survey->scanner->platform->scene = baseScene;
+  survey->scene = baseScene;
 
   baseScene->primitives.push_back(new Triangle(Vertex(), Vertex(), Vertex()));
   baseScene->primitives[0]->part = std::make_shared<ScenePart>();
@@ -88,7 +88,7 @@ TEST_CASE("Survey Copy Test")
   copy->scanner->getFWFSettings().minEchoWidth += 0.001;
   copy->legs[0]->mPlatformSettings->onGround = true;
 
-  std::shared_ptr<Scene> copyScene = copy->scanner->platform->scene;
+  std::shared_ptr<Scene> copyScene = copy->scene;
   copyScene->primitives[0]->getVertices()[0].pos.x += 0.1;
   copyScene->primitives[0]->part->onRayIntersectionArgument += 0.034;
   copyScene->primitives[1]->material->ks[1] += 0.1;

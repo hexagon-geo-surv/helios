@@ -7,7 +7,6 @@
 #include "Asset.h"
 #include "Directions.h"
 #include "PlatformSettings.h"
-#include "Scene.h"
 #include "maths/Rotation.h"
 #include <NoiseSource.h>
 
@@ -38,11 +37,6 @@ public:
    * @brief Not used at the moment. Might be removed in the future.
    */
   glm::dvec3 lastGroundCheck = glm::dvec3(0, 0, 0);
-  /**
-   * @brief Scene where the platform belongs to
-   */
-  std::shared_ptr<Scene> scene = nullptr;
-
   // Noise generators
   /**
    * @brief Noise source for x component of platform position

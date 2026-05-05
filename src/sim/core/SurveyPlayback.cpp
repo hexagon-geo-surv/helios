@@ -47,6 +47,7 @@ SurveyPlayback::SurveyPlayback(
   this->exitAtEnd = true;
   this->exportToFile = exportToFile;
   this->setScanner(mSurvey->scanner);
+  this->setScene(mSurvey->requireScene());
 
   // Disable exports if requested
   if (!this->exportToFile) {
@@ -63,8 +64,7 @@ SurveyPlayback::SurveyPlayback(
 
     // Set leg position to the center of the scene:
     shared_ptr<PlatformSettings> ps = make_shared<PlatformSettings>();
-    ps->setPosition(
-      mSurvey->scanner->platform->scene->getAABB()->getCentroid());
+    ps->setPosition(mSurvey->requireScene().getAABB()->getCentroid());
     leg->mPlatformSettings = ps;
 
     // Add leg to survey:
@@ -422,7 +422,6 @@ SurveyPlayback::shutdown()
   Simulation::shutdown();
   if (!disableShutdown) {
     mSurvey->scanner->getDetector()->shutdown();
-    mSurvey->scanner->platform->scene->shutdown();
   }
 }
 

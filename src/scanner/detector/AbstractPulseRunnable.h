@@ -6,6 +6,7 @@
 class Measurement;
 #include "LasSpecification.h"
 class Scanner;
+class Scene;
 #include <scanner/SimulatedPulse.h>
 #if DATA_ANALYTICS >= 2
 #include <dataanalytics/HDA_PulseRecorder.h>
@@ -57,6 +58,7 @@ public:
    * @see SimulatedPulse
    */
   AbstractPulseRunnable(std::shared_ptr<Scanner> const scanner,
+                        Scene& scene,
                         SimulatedPulse const& pulse);
 
   // ***  M E T H O D S  *** //
