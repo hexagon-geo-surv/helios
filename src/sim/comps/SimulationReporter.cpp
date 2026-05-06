@@ -61,7 +61,7 @@ std::string
 SimulationReporter::reportDynMovingObjects() const
 {
   // Check that there are moving objects
-  Scene& scene = *(sim.mScanner->platform->scene);
+  Scene& scene = sim.getScene();
   if (!scene.hasMovingObjects())
     return "";
 

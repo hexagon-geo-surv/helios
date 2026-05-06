@@ -155,7 +155,7 @@ macro_playback_benchmark(benchmark::State& state)
   sc->fms = nullptr;
   playback->fms = nullptr;
   // Release main components
-  sc->platform->scene = nullptr;
+  playback->mSurvey->scene = nullptr;
   sc->platform = nullptr;
   playback->mSurvey->scanner = nullptr;
   playback->mSurvey = nullptr;

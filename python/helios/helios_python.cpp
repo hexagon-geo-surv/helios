@@ -989,10 +989,8 @@ PYBIND11_MODULE(_helios, m)
     [](Survey& s, std::shared_ptr<Platform> p) { s.scanner->platform = p; });
   survey.def_property(
     "scene",
-    [](const Survey& s) { return s.scanner->platform->scene; },
-    [](Survey& s, std::shared_ptr<Scene> sc) {
-      s.scanner->platform->scene = sc;
-    });
+    [](const Survey& s) { return s.scene; },
+    [](Survey& s, std::shared_ptr<Scene> sc) { s.scene = sc; });
 
   py::class_<Leg, std::shared_ptr<Leg>> leg(m, "Leg");
   leg.def(py::init<>())
@@ -1428,7 +1426,6 @@ PYBIND11_MODULE(_helios, m)
     .def_readwrite("attitude_x_noise_source", &Platform::attitudeXNoiseSource)
     .def_readwrite("attitude_y_noise_source", &Platform::attitudeYNoiseSource)
     .def_readwrite("attitude_z_noise_source", &Platform::attitudeZNoiseSource)
-    .def_readwrite("scene", &Platform::scene)
     .def_readwrite("target_waypoint", &Platform::targetWaypoint)
     .def_readwrite("origin_waypoint", &Platform::originWaypoint)
     .def_readwrite("next_waypoint", &Platform::nextWaypoint)
@@ -1786,7 +1783,8 @@ PYBIND11_MODULE(_helios, m)
          &Scanner::buildScanningPulseProcess,
          py::arg("parallelization_strategy"),
          py::arg("dropper"),
-         py::arg("pool"))
+         py::arg("pool"),
+         py::arg("scene"))
     .def("apply_settings",
          py::overload_cast<std::shared_ptr<ScannerSettings>>(
            &Scanner::applySettings))
@@ -1804,7 +1802,8 @@ PYBIND11_MODULE(_helios, m)
     .def("do_sim_step",
          &Scanner::doSimStep,
          py::arg("legIndex"),
-         py::arg("currentGpsTime"))
+         py::arg("currentGpsTime"),
+         py::arg("scene"))
     .def("to_string", &Scanner::toString)
     .def("calc_rays_number", py::overload_cast<>(&Scanner::calcRaysNumber))
     .def("calc_rays_number",
@@ -2402,7 +2401,8 @@ PYBIND11_MODULE(_helios, m)
     .def("do_sim_step",
          &SingleScanner::doSimStep,
          py::arg("leg_index"),
-         py::arg("current_gps_time"))
+         py::arg("current_gps_time"),
+         py::arg("scene"))
     .def("calc_rays_number", &SingleScanner::calcRaysNumber, py::arg("idx") = 0)
     .def("prepare_discretization",
          &SingleScanner::prepareDiscretization,
@@ -2651,7 +2651,8 @@ PYBIND11_MODULE(_helios, m)
     .def("do_sim_step",
          &MultiScanner::doSimStep,
          py::arg("leg_index"),
-         py::arg("current_gps_time"))
+         py::arg("current_gps_time"),
+         py::arg("scene"))
     .def("calc_rays_number", &MultiScanner::calcRaysNumber, py::arg("idx"))
     .def("prepare_discretization",
          &MultiScanner::prepareDiscretization,
@@ -3109,7 +3110,9 @@ PYBIND11_MODULE(_helios, m)
   py::class_<ScanningPulseProcess,
              ScanningPulseProcessWrap,
              std::shared_ptr<ScanningPulseProcess>>(m, "ScanningPulseProcess")
-    .def(py::init<std::shared_ptr<Scanner>>())
+    .def(py::init<std::shared_ptr<Scanner>, Scene&>(),
+         py::arg("scanner"),
+         py::arg("scene"))
     .def("handle_pulse_computation",
          &ScanningPulseProcess::handlePulseComputation)
     .def("on_leg_complete", &ScanningPulseProcess::onLegComplete)
@@ -3130,6 +3133,7 @@ PYBIND11_MODULE(_helios, m)
              std::shared_ptr<BuddingScanningPulseProcess>>(
     m, "BuddingScanningPulseProcess")
     .def(py::init<std::shared_ptr<Scanner>,
+                  Scene&,
                   PulseTaskDropper&,
                   PulseThreadPool&,
                   RandomnessGenerator<double>&,
@@ -3141,6 +3145,7 @@ PYBIND11_MODULE(_helios, m)
 #endif
                   >(),
          py::arg("scanner"),
+         py::arg("scene"),
          py::arg("dropper"),
          py::arg("pool"),
          py::arg("randGen1"),
@@ -3163,6 +3168,7 @@ PYBIND11_MODULE(_helios, m)
              std::shared_ptr<WarehouseScanningPulseProcess>>(
     m, "WarehouseScanningPulseProcess")
     .def(py::init<std::shared_ptr<Scanner>,
+                  Scene&,
                   PulseTaskDropper&,
                   PulseWarehouseThreadPool&,
                   RandomnessGenerator<double>&,
@@ -3174,6 +3180,7 @@ PYBIND11_MODULE(_helios, m)
 #endif
                   >(),
          py::arg("scanner"),
+         py::arg("scene"),
          py::arg("dropper"),
          py::arg("pool"),
          py::arg("randGen1"),

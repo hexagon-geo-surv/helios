@@ -113,6 +113,7 @@ public:
    */
   BuddingScanningPulseProcess(
     std::shared_ptr<Scanner> scanner,
+    Scene& scene,
     PulseTaskDropper& dropper,
     PulseThreadPool& pool,
     RandomnessGenerator<double>& randGen1,

@@ -100,10 +100,6 @@ private:
       );
 
     auto platform = std::make_shared<Platform>();
-    auto scene = std::make_shared<BenchmarkScene>();
-    scene->setBenchmarkAABB(glm::dvec3(-50.0, -50.0, -50.0),
-                            glm::dvec3(50.0, 50.0, 50.0));
-    platform->scene = scene;
     scanner->platform = platform;
 
     // Detector is required as computeReceivedPower reads detector rangeMin.

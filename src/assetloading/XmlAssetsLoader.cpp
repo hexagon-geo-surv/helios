@@ -5,7 +5,6 @@
 
 #include <adt/exprtree/UnivarExprTreeNode.h>
 
-#define _USE_MATH_DEFINES
 #include <cmath>
 #include <sstream>
 #include <vector>

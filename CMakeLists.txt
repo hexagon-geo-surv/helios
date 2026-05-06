@@ -66,7 +66,7 @@ add_library(helios)
 find_package(GDAL CONFIG REQUIRED)
 find_package(tinyxml2 REQUIRED)
 find_package(glm REQUIRED)
-find_package(Boost REQUIRED COMPONENTS system thread regex filesystem iostreams random)
+find_package(Boost REQUIRED COMPONENTS thread regex filesystem iostreams random)
 find_package(Armadillo REQUIRED)
 find_package(LAPACK REQUIRED)
 find_package(BLAS REQUIRED)
@@ -108,7 +108,7 @@ target_link_libraries(helios
     GDAL::GDAL
     tinyxml2::tinyxml2
     glm::glm
-    Boost::system
+    Boost::headers
     Boost::thread
     Boost::regex
     Boost::filesystem
@@ -133,7 +133,7 @@ target_compile_definitions(helios
 
 # Ensure Windows-specific compile options
 if(WIN32 OR MSVC)
-  target_compile_definitions(helios PUBLIC WIN32_LEAN_AND_MEAN _OS_WINDOWS_)
+  target_compile_definitions(helios PUBLIC WIN32_LEAN_AND_MEAN _OS_WINDOWS_ _USE_MATH_DEFINES)
   target_compile_options(helios PUBLIC /bigobj /EHsc)
 endif()
 

@@ -7,6 +7,7 @@
 #include <ScannerHead.h>
 #include <ScanningDevice.h>
 class AbstractDetector;
+class Scene;
 #include <FWFSettings.h>
 #include <Platform.h>
 #include <RandomnessGenerator.h>
@@ -218,10 +219,10 @@ public:
    * @see Simulation::taskDropper
    * @see Simulation::threadPool
    */
-  void buildScanningPulseProcess(
-    int const parallelizationStrategy,
-    PulseTaskDropper& dropper,
-    std::shared_ptr<PulseThreadPoolInterface> pool);
+  void buildScanningPulseProcess(int const parallelizationStrategy,
+                                 PulseTaskDropper& dropper,
+                                 std::shared_ptr<PulseThreadPoolInterface> pool,
+                                 Scene& scene);
   /**
    * @brief Apply scanner settings
    * @param settings Scanner settings to be applied
@@ -282,7 +283,8 @@ public:
    * @param currentGpsTime GPS time of current pulse
    */
   virtual void doSimStep(unsigned int legIndex,
-                         double const currentGpsTime) = 0;
+                         double const currentGpsTime,
+                         Scene& scene) = 0;
   /**
    * @brief Build a string representation of the scanner
    * @return String representing the scanner
@@ -493,7 +495,7 @@ public:
    * @param currentGpsTime Current GPS time (nanoseconds)
    * @see Scanner::allTrajectories
    */
-  void handleTrajectoryOutput(double const currentGpsTime);
+  void handleTrajectoryOutput(double const currentGpsTime, Scene& scene);
   /**
    * @brief Track given output path in a thread safe way
    * @param path Output path to be tracked

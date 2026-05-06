@@ -101,7 +101,6 @@ protected:
     imp.cfg_device_relativeMountAttitude = cfg_device_relativeMountAttitude;
     imp.lastCheckZ = lastCheckZ;
     imp.lastGroundCheck = lastGroundCheck;
-    imp.scene = scene;
     imp.positionXNoiseSource = positionXNoiseSource;
     imp.positionYNoiseSource = positionYNoiseSource;
     imp.positionZNoiseSource = positionZNoiseSource;

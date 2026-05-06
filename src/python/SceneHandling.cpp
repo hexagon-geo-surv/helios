@@ -380,7 +380,8 @@ makeInterpolatedShift(Survey& survey,
 void
 makeSceneShift(Survey& survey)
 {
-  glm::dvec3 shift = survey.scanner->platform->scene->getShift();
+  Scene& scene = survey.requireScene();
+  glm::dvec3 shift = scene.getShift();
   // Apply changes to interpolated charachteristics, if any
   if (auto ip = std::dynamic_pointer_cast<InterpolatedMovingPlatformEgg>(
         survey.scanner->platform)) {
@@ -396,8 +397,7 @@ makeSceneShift(Survey& survey)
       platformPos -= shift;
       // If specified, move waypoint z coordinate to ground level
       if (leg.mPlatformSettings->onGround) {
-        auto groundZ =
-          survey.scanner->platform->scene->getGroundPointAt(platformPos).z;
+        auto groundZ = scene.getGroundPointAt(platformPos).z;
         platformPos.z = groundZ;
       }
       leg.mPlatformSettings->setPosition(platformPos);

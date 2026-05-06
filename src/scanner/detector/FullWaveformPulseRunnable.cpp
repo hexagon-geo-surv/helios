@@ -4,7 +4,6 @@
 
 #include "logging.hpp"
 
-#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include "maths/Rotation.h"
@@ -14,6 +13,7 @@
 #include <maths/RayUtils.h>
 #include <scanner/Scanner.h>
 #include <scanner/detector/FullWaveform.h>
+#include <scene/Scene.h>
 
 #if DATA_ANALYTICS >= 2
 #include <dataanalytics/HDA_GlobalVars.h>

@@ -284,7 +284,7 @@ HDA_StateJSONReporter::reportDetector()
 void
 HDA_StateJSONReporter::reportScene()
 {
-  Scene* sc = sp->mScanner->platform->scene.get();
+  Scene* sc = sp->mSurvey->scene.get();
   std::stringstream ss;
   ss << openEntry("scene", 3, EntryType::OBJECT)
      << craftEntry("bbox_min", sc->getBBox()->getMin(), 4)

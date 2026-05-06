@@ -32,8 +32,9 @@ public:
    */
   DynFullWaveformPulseRunnable(std::shared_ptr<KDGroveRaycaster> raycaster,
                                std::shared_ptr<Scanner> scanner,
+                               Scene& scene,
                                SimulatedPulse const& pulse)
-    : FullWaveformPulseRunnable(scanner, pulse)
+    : FullWaveformPulseRunnable(scanner, scene, pulse)
     , raycaster(raycaster)
   {
   }

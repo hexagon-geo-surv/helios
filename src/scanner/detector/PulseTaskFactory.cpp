@@ -19,7 +19,8 @@ PulseTaskFactory::buildFullWaveformPulseRunnable(
   ScanningPulseProcess const& spp,
   SimulatedPulse const& sp) const
 {
-  return std::make_shared<FullWaveformPulseRunnable>(spp.getScanner(), sp);
+  return std::make_shared<FullWaveformPulseRunnable>(
+    spp.getScanner(), scene, sp);
 }
 
 std::shared_ptr<PulseTask>
@@ -28,7 +29,7 @@ PulseTaskFactory::buildDynFullWaveformPulseRunnable(
   SimulatedPulse const& sp) const
 {
   return std::make_shared<DynFullWaveformPulseRunnable>(
-    scene.getRaycaster()->makeTemporalClone(), spp.getScanner(), sp);
+    scene.getRaycaster()->makeTemporalClone(), spp.getScanner(), scene, sp);
 }
 
 void

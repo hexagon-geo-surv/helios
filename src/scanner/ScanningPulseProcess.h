@@ -5,6 +5,7 @@
 #include <Rotation.h>
 #include <scanner/SimulatedPulse.h>
 class Scanner;
+class Scene;
 
 #include <glm/glm.hpp>
 
@@ -37,7 +38,7 @@ public:
   /**
    * @brief Default constructor for scanning pulse process
    */
-  ScanningPulseProcess(std::shared_ptr<Scanner> scanner);
+  ScanningPulseProcess(std::shared_ptr<Scanner> scanner, Scene& scene);
   virtual ~ScanningPulseProcess() = default;
 
   // ***  PULSE COMPUTATION  *** //

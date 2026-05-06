@@ -1,12 +1,11 @@
 #include "PolygonMirrorBeamDeflector.h"
+#include "MathConverter.h"
 #include "maths/Directions.h"
 #include <HeliosException.h>
 #include <iostream>
 #include <logging.hpp>
-#include <sstream>
-#define _USE_MATH_DEFINES
-#include "MathConverter.h"
 #include <math.h>
+#include <sstream>
 
 // ***  CONSTRUCTION / DESTRUCTION  *** //
 // ************************************ //

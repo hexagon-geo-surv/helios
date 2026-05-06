@@ -53,6 +53,7 @@ public:
 
 struct BenchmarkContext
 {
+  std::shared_ptr<BenchmarkScene> scene;
   std::shared_ptr<SingleScanner> scanner;
   BenchmarkFullWaveformPulseRunnable runnable;
   UniformNoiseSource<double> intersectionNoise;
@@ -60,8 +61,9 @@ struct BenchmarkContext
   std::vector<RaySceneIntersection> intersections;
 
   explicit BenchmarkContext(int const beamSampleQuality)
-    : scanner(makeScanner(beamSampleQuality))
-    , runnable(scanner, makePulse())
+    : scene(makeScene())
+    , scanner(makeScanner(beamSampleQuality))
+    , runnable(scanner, *scene, makePulse())
     , intersectionNoise(0.0, 1.0)
   {
     runnable.detector = scanner->getDetector(0);
@@ -84,6 +86,14 @@ private:
                           1,                     // pulseNumber
                           static_cast<size_t>(0) // deviceIndex
     );
+  }
+
+  static std::shared_ptr<BenchmarkScene> makeScene()
+  {
+    auto scene = std::make_shared<BenchmarkScene>();
+    scene->setBenchmarkAABB(glm::dvec3(-25.0, -25.0, -25.0),
+                            glm::dvec3(-5.0, -5.0, -5.0));
+    return scene;
   }
 
   static std::shared_ptr<SingleScanner> makeScanner(int const beamSampleQuality)
@@ -111,10 +121,6 @@ private:
     scanner->getFWFSettings(0).beamSampleQuality = beamSampleQuality;
 
     auto platform = std::make_shared<Platform>();
-    auto scene = std::make_shared<BenchmarkScene>();
-    scene->setBenchmarkAABB(glm::dvec3(-25.0, -25.0, -25.0),
-                            glm::dvec3(-5.0, -5.0, -5.0));
-    platform->scene = scene;
     scanner->platform = platform;
 
     scanner->setDetector(

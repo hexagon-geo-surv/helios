@@ -104,7 +104,9 @@ MultiScanner::applySettings(std::shared_ptr<ScannerSettings> settings,
 }
 
 void
-MultiScanner::doSimStep(unsigned int legIndex, double const currentGpsTime)
+MultiScanner::doSimStep(unsigned int legIndex,
+                        double const currentGpsTime,
+                        Scene& scene)
 {
   // Check whether the scanner is active or not
   bool const _isActive = isActive();
@@ -134,7 +136,7 @@ MultiScanner::doSimStep(unsigned int legIndex, double const currentGpsTime)
     return;
 
   // Handle trajectory output
-  handleTrajectoryOutput(currentGpsTime);
+  handleTrajectoryOutput(currentGpsTime, scene);
 }
 
 void
