@@ -1,6 +1,5 @@
 #include "ScannerHead.h"
 
-#define _USE_MATH_DEFINES
 #include <MathConstants.h>
 #include <math.h>
 

@@ -133,7 +133,7 @@ target_compile_definitions(helios
 
 # Ensure Windows-specific compile options
 if(WIN32 OR MSVC)
-  target_compile_definitions(helios PUBLIC WIN32_LEAN_AND_MEAN _OS_WINDOWS_)
+  target_compile_definitions(helios PUBLIC WIN32_LEAN_AND_MEAN _OS_WINDOWS_ _USE_MATH_DEFINES)
   target_compile_options(helios PUBLIC /bigobj /EHsc)
 endif()
 

@@ -4,7 +4,6 @@
 #include <sstream>
 using namespace std;
 
-#define _USE_MATH_DEFINES
 #include <logging.hpp>
 #include <math.h>
 

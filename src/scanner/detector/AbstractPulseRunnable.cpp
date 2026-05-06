@@ -1,6 +1,5 @@
 #include "AbstractPulseRunnable.h"
 
-#define _USE_MATH_DEFINES
 #include "MathConstants.h"
 #include "math.h"
 #include <maths/EnergyMaths.h>

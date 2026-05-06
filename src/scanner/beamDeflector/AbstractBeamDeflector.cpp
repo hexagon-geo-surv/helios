@@ -7,8 +7,6 @@
 #include "MathConverter.h"
 #include <logging.hpp>
 
-#define _USE_MATH_DEFINES
-
 // ***  CONSTRUCTION / DESTRUCTION  *** //
 // ************************************ //
 void
