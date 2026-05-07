@@ -1,6 +1,11 @@
 name: Refresh notebooks
 
 on:
+  # We run this for all changes on alpha-doc while we are still iterating on the notebooks.
+  # With the alpha-doc branch merged, this could be removed entirely or changed to a different trigger.
+  push:
+    branches:
+      - alpha-doc
   workflow_dispatch:
 
 permissions:
