@@ -265,20 +265,28 @@ def test_ensure_scene_actors_builds_static_scene(monkeypatch):
 
     viewer = live_module.LiveViewer()
     viewer.scene = SimpleNamespace(
+        _cpp_object=SimpleNamespace(
+            bbox_crs=SimpleNamespace(
+                centroid=np.array([0.0, 0.0, 0.0], dtype=np.float64)
+            )
+        ),
         scene_parts=[
             SimpleNamespace(
-                get_visualization_buffers=lambda: SimpleNamespace(
+                get_visualization_buffers=lambda diff: SimpleNamespace(
                     triangle_vertices=np.array(
-                        [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
+                        [
+                            [0.0, 0.0, 0.0],
+                            [1.0, 0.0, 0.0],
+                            [0.0, 1.0, 0.0],
+                        ],
                         dtype=np.float32,
                     ),
                     triangle_indices=np.array([[0, 1, 2]], dtype=np.int32),
                     voxel_centers=np.array([[5.0, 5.0, 5.0]], dtype=np.float32),
                 )
             )
-        ]
+        ],
     )
-
     viewer._ensure_scene_actors()
 
     assert len(viewer._scene_actors) == 2
@@ -304,9 +312,14 @@ def test_create_scene_actors_returns_mesh_and_points(monkeypatch):
 
     viewer = live_module.LiveViewer()
     viewer.scene = SimpleNamespace(
+        _cpp_object=SimpleNamespace(
+            bbox_crs=SimpleNamespace(
+                centroid=np.array([0.0, 0.0, 0.0], dtype=np.float64)
+            )
+        ),
         scene_parts=[
             SimpleNamespace(
-                get_visualization_buffers=lambda: SimpleNamespace(
+                get_visualization_buffers=lambda diff: SimpleNamespace(
                     triangle_vertices=np.array(
                         [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
                         dtype=np.float32,
@@ -315,7 +328,7 @@ def test_create_scene_actors_returns_mesh_and_points(monkeypatch):
                     voxel_centers=np.array([[5.0, 5.0, 5.0]], dtype=np.float32),
                 )
             )
-        ]
+        ],
     )
 
     actors = viewer._create_scene_actors()
