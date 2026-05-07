@@ -42,7 +42,7 @@ jobs:
 
       - name: Install notebook execution dependencies
         run: |
-          conda install -y -c conda-forge ipykernel nbconvert
+          conda install -y -c conda-forge ipykernel nbconvert lxml-html-clean
 
       - name: Install Helios
         run: |
@@ -51,7 +51,7 @@ jobs:
           SETUPTOOLS_SCM_SUBPROCESS_TIMEOUT: "120"
 
       - name: Rerun notebooks
-        working-directory: doc
+        working-directory: example_notebooks
         run: |
           jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=1200 *.ipynb
 
