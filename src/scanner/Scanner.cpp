@@ -40,6 +40,7 @@ clonePlatformForScanner(const std::shared_ptr<Platform>& platform)
 
 // ***  CONSTRUCTION / DESTRUCTION  *** //
 // ************************************ //
+Scanner::~Scanner() = default;
 Scanner::Scanner(std::string const id,
                  std::list<int> const& pulseFreqs,
                  bool const writeWaveform,
@@ -178,6 +179,7 @@ Scanner::retrieveCurrentSettings(size_t const idx)
   settings->active = isActive();
   settings->beamDivAngle = getBeamDivergence(idx);
   settings->trajectoryTimeInterval = trajectoryTimeInterval_ns / 1000000000.0;
+  settings->maxDuration_s = maxDuration_s;
   // Settings from ScannerHead
   settings->headRotatePerSec_rad = getScannerHead(idx)->getRotateStart();
   settings->headRotateStart_rad = getScannerHead(idx)->getRotateCurrent();
@@ -189,6 +191,8 @@ Scanner::retrieveCurrentSettings(size_t const idx)
     getBeamDeflector(idx)->cfg_setting_verticalAngleMin_rad;
   settings->verticalAngleMax_rad =
     getBeamDeflector(idx)->cfg_setting_verticalAngleMax_rad;
+  settings->opticsWarmupPhase_s =
+    getBeamDeflector(idx)->getOpticsWarmupPhase_s();
   // Return settings
   return settings;
 }
@@ -390,4 +394,14 @@ Scanner::buildScanningPulseProcess(
        << "strategy: " << parallelizationStrategy;
     throw HeliosException(ss.str());
   }
+}
+
+bool
+Scanner::maxTimeElapsed(double currentGpsTime_ns, double startGpsTime_ns)
+{
+  if (maxDuration_s <= 0.0)
+    return false;
+
+  double elapsed_s = (currentGpsTime_ns - startGpsTime_ns) * 1e-9;
+  return elapsed_s >= maxDuration_s;
 }
