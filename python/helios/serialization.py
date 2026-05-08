@@ -25,7 +25,6 @@ import shlex
 import shutil
 import yaml
 
-
 # Bumping this rejects all documents from previous major versions.
 # Do this only when there is strong need to, you will invalidate all
 # data that users might have serialized already. You can also delete

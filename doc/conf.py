@@ -6,7 +6,6 @@ import sys
 
 from importlib import metadata as importlib_metadata
 
-
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 PYTHON_DIR = ROOT / "python"
 
