@@ -94,6 +94,7 @@ class LiveViewer:
         trajectory_style: Literal["points", "line"] = "points",
         frame_hz: float = 30.0,
         window_title: str = "Helios Live",
+        timeout: float = 5.0,
     ):
         if Plotter is None:
             raise ImportError(
@@ -107,6 +108,9 @@ class LiveViewer:
         self.trajectory_style = trajectory_style
         self.frame_interval_s = 1.0 / float(frame_hz)
         self.window_title = window_title
+        self.timeout = float(timeout)
+        if self.timeout <= 0:
+            raise ValueError("Timeout must be positive")
 
         self.scene: Optional[StaticScene] = None
         self.producer = LiveProducer(period=self.period)
@@ -140,10 +144,13 @@ class LiveViewer:
         self._start_viewer_thread()
         self._viewer_started = True
 
-        if not self._ready_event.wait(timeout=1.0):
+        if not self._ready_event.wait(timeout=self.timeout):
             self._stop_event.set()
             self._stop_thread_event()
-            raise RuntimeError("Viewer failed to start within timeout")
+            raise RuntimeError(
+                f"Viewer not ready after {self.timeout}s. "
+                "Increase timeout via LiveViewer(timeout=...)."
+            )
 
         if self._error is not None:
             self._stop_event.set()
