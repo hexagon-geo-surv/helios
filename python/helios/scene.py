@@ -662,7 +662,7 @@ class ScenePart(Model, cpp_class=_helios.ScenePart):
             f"Expected open3d.geometry.TriangleMesh or open3d.geometry.PointCloud, got {type(geometry)}."
         )
 
-    def get_visualization_buffers(self, diff: Optional[R3Vector] = None):
+    def _get_visualization_buffers(self, diff: Optional[R3Vector] = None):
         """Return raw visualization buffers for live rendering."""
         return self._cpp_object.visualization_buffers(
             diff if diff is not None else [0.0, 0.0, 0.0]

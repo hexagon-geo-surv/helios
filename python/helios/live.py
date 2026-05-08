@@ -125,8 +125,9 @@ class LiveViewer:
         self._scene_actors: list[Any] = []
 
     def attach_to_survey(self, survey) -> None:
-        if self.scene is None:
-            self.scene = survey.scene
+        if self.scene is not None:
+            raise RuntimeError("attach_to_survey already called")
+        self.scene = survey.scene
 
     def callbacks(self):
         return self.producer.callbacks()
@@ -278,7 +279,7 @@ class LiveViewer:
         actors: list[Any] = []
         diff = self.scene._cpp_object.bbox_crs.centroid
         for part in self.scene.scene_parts:
-            buffers = part.get_visualization_buffers(diff)
+            buffers = part._get_visualization_buffers(diff)
 
             triangle_vertices = np.asarray(buffers.triangle_vertices, dtype=np.float32)
             triangle_indices = np.asarray(buffers.triangle_indices, dtype=np.int32)
