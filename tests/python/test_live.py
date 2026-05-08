@@ -272,7 +272,7 @@ def test_ensure_scene_actors_builds_static_scene(monkeypatch):
         ),
         scene_parts=[
             SimpleNamespace(
-                get_visualization_buffers=lambda diff: SimpleNamespace(
+                _get_visualization_buffers=lambda diff: SimpleNamespace(
                     triangle_vertices=np.array(
                         [
                             [0.0, 0.0, 0.0],
@@ -319,7 +319,7 @@ def test_create_scene_actors_returns_mesh_and_points(monkeypatch):
         ),
         scene_parts=[
             SimpleNamespace(
-                get_visualization_buffers=lambda diff: SimpleNamespace(
+                _get_visualization_buffers=lambda diff: SimpleNamespace(
                     triangle_vertices=np.array(
                         [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]],
                         dtype=np.float32,

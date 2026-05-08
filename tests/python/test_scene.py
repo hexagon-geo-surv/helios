@@ -1624,7 +1624,7 @@ def test_scene_part_from_o3d_mesh_accepts_all_supported_mesh_attributes(o3d_mesh
 
 def test_take_vis_buffer_from_scene_part():
     part = ScenePart.from_xml("data/scenes/toyblocks/toyblocks_scene.xml", id="0")
-    buffers = part.get_visualization_buffers()
+    buffers = part._get_visualization_buffers()
     triangle_vertices = np.asarray(buffers.triangle_vertices, dtype=np.float32)
     triangle_indices = np.asarray(buffers.triangle_indices, dtype=np.int32)
 

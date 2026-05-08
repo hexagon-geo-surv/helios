@@ -278,7 +278,7 @@ class LiveViewer:
         actors: list[Any] = []
         diff = self.scene._cpp_object.bbox_crs.centroid
         for part in self.scene.scene_parts:
-            buffers = part.get_visualization_buffers(diff)
+            buffers = part._get_visualization_buffers(diff)
 
             triangle_vertices = np.asarray(buffers.triangle_vertices, dtype=np.float32)
             triangle_indices = np.asarray(buffers.triangle_indices, dtype=np.int32)
