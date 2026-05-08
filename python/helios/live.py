@@ -125,6 +125,8 @@ class LiveViewer:
         self._scene_actors: list[Any] = []
 
     def attach_to_survey(self, survey) -> None:
+        if self.scene is not None:
+            raise RuntimeError("attach_to_survey already called")
         self.scene = survey.scene
 
     def callbacks(self):
