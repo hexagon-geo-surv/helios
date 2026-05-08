@@ -125,8 +125,7 @@ class LiveViewer:
         self._scene_actors: list[Any] = []
 
     def attach_to_survey(self, survey) -> None:
-        if self.scene is None:
-            self.scene = survey.scene
+        self.scene = survey.scene
 
     def callbacks(self):
         return self.producer.callbacks()
