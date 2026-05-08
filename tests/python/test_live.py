@@ -472,7 +472,7 @@ def test_start_times_out(monkeypatch):
     monkeypatch.setattr(viewer, "_start_viewer_thread", lambda: None)
     monkeypatch.setattr(viewer._ready_event, "wait", lambda timeout: False)
 
-    with pytest.raises(RuntimeError, match="failed to start"):
+    with pytest.raises(RuntimeError, match="Viewer not ready after"):
         viewer.start()
 
 
