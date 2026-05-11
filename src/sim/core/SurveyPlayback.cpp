@@ -1,4 +1,6 @@
 #include "logging.hpp"
+#include <algorithm>
+#include <iomanip>
 #include <string>
 
 #include <chrono>
@@ -162,7 +164,16 @@ SurveyPlayback::trackProgress()
     double legElapsedAngle =
       std::fabs(getScanner()->getScannerHead()->getRotateStart() -
                 getScanner()->getScannerHead()->getExactRotateCurrent());
-    int const legProgress = estimateAngularLegProgress(legElapsedAngle);
+    int legProgress = estimateAngularLegProgress(legElapsedAngle);
+    // Fallback to time-based progress when maxDuration is set
+    if (getScanner()->getMaxDuration() > 0.0) {
+      double const elapsed_s =
+        (currentGpsTime_ns - maxDurationStartGpsTime_ns) * 1e-9;
+      double const duration = getScanner()->getMaxDuration();
+      int const timeProgress =
+        static_cast<int>(std::min(100.0, (elapsed_s / duration) * 100.0));
+      legProgress = std::max(legProgress, timeProgress);
+    }
     estimateTime(legProgress, 0);
   } else if (mCurrentLegIndex < mSurvey->legs.size() - 1) {
     double const legElapsedLength =
@@ -293,6 +304,22 @@ SurveyPlayback::startLeg(unsigned int const legIndex, bool const manual)
   if (leg->mScannerSettings != nullptr) {
     mSurvey->scanner->applySettings(leg->mScannerSettings);
   }
+  // Apply maxDuration_s to scanner (prefer trajectory override, then scanner
+  // settings)
+  double maxDuration_s = -1.0;
+  if (leg->mTrajectorySettings != nullptr &&
+      leg->mTrajectorySettings->maxDuration_s > 0.0) {
+    maxDuration_s = leg->mTrajectorySettings->maxDuration_s;
+  } else if (leg->mScannerSettings != nullptr &&
+             leg->mScannerSettings->maxDuration_s > 0.0) {
+    maxDuration_s = leg->mScannerSettings->maxDuration_s;
+  }
+  getScanner()->setMaxDuration(maxDuration_s);
+  maxDurationStartGpsTime_ns = currentGpsTime_ns;
+  maxDurationStartPulseNumber = getScanner()->getCurrentPulseNumber();
+  maxDurationDeferredUntilFirstPulse =
+    (maxDuration_s > 0.0) && getScanner()->isActive();
+
   shared_ptr<Platform> platform(getScanner()->platform);
   mSurvey->scanner->lastTrajectoryTime = 0L;
 
