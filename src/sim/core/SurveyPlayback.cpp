@@ -164,7 +164,7 @@ SurveyPlayback::trackProgress()
     double legElapsedAngle =
       std::fabs(getScanner()->getScannerHead()->getRotateStart() -
                 getScanner()->getScannerHead()->getExactRotateCurrent());
-    int const legProgress = estimateAngularLegProgress(legElapsedAngle);
+    int legProgress = estimateAngularLegProgress(legElapsedAngle);
     // Fallback to time-based progress when maxDuration is set
     if (getScanner()->getMaxDuration() > 0.0) {
       double const elapsed_s =
