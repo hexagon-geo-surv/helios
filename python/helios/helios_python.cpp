@@ -1009,9 +1009,10 @@ PYBIND11_MODULE(_helios, m)
 
   py::class_<ScenePart, std::shared_ptr<ScenePart>> scene_part(m, "ScenePart");
   scene_part.def(py::init<>())
-    .def(py::init<const ScenePart&, bool>(),
+    .def(py::init<const ScenePart&, bool, bool>(),
          py::arg("sp"),
-         py::arg("shallowPrimitives") = false)
+         py::arg("shallowPrimitives") = false,
+         py::arg("resetVerticesToCanonicalPosition") = true)
 
     .def_readwrite("origin", &ScenePart::mOrigin)
     .def_readwrite("rotation", &ScenePart::mRotation)
