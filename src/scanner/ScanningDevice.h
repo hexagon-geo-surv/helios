@@ -214,6 +214,7 @@ protected:
    */
   bool state_opticsWarmupApplied = false;
 
+public:
   // ***  CACHED ATTRIBUTES  *** //
   // *************************** //
   /**
