@@ -1,13 +1,16 @@
 #include "logging.hpp"
+#include <HeliosException.h>
 #include <iostream>
 
 #include <chrono>
 using namespace std::chrono;
 
 #include "AbstractDetector.h"
+#include <HeliosException.h>
 #include <platform/InterpolatedMovingPlatform.h>
 #include <platform/InterpolatedMovingPlatformEgg.h>
 #include <scanner/BuddingScanningPulseProcess.h>
+#include <scene/Scene.h>
 #include <scene/dynamic/DynScene.h>
 #ifdef DATA_ANALYTICS
 #include <dataanalytics/HDA_SimStepRecorder.h>
@@ -70,7 +73,7 @@ Simulation::prepareSimulation(int simFrequency_hz)
   // Prepare scanner
   this->mScanner->prepareSimulation(legacyEnergyModel);
   this->mScanner->buildScanningPulseProcess(
-    parallelizationStrategy, taskDropper, threadPool);
+    parallelizationStrategy, taskDropper, threadPool, getScene());
 
   // Prepare simulation
   setSimFrequency(this->mScanner->getPulseFreq_Hz());
@@ -78,23 +81,61 @@ Simulation::prepareSimulation(int simFrequency_hz)
   stepGpsTime_ns = 1000000000. * stepLoop.getPeriod();
 
   // Prepare scene (mostly for dynamic scenes)
-  mScanner->platform->scene->prepareSimulation(simFrequency_hz);
+  getScene().prepareSimulation(simFrequency_hz);
 }
 
 void
 Simulation::doSimStep()
 {
-  // Check for leg completion:
-  if (mScanner->getScannerHead(0)->rotateCompleted() &&
+  if (mScanner->getMaxDuration() > 0.0 && maxDurationDeferredUntilFirstPulse) {
+    int const currentPulseNumber = mScanner->getCurrentPulseNumber();
+    if (currentPulseNumber <= maxDurationStartPulseNumber) {
+      // Keep elapsed maxDuration_s at ~0 until first pulse is emitted.
+      maxDurationStartGpsTime_ns = currentGpsTime_ns;
+    } else {
+      maxDurationDeferredUntilFirstPulse = false;
+      maxDurationStartGpsTime_ns = currentGpsTime_ns;
+    }
+  }
+
+  // Check for leg completion
+  bool const maxDurationElapsed = mScanner->checkMaxTimeElapsed(
+    currentGpsTime_ns, maxDurationStartGpsTime_ns);
+  if (maxDurationElapsed) {
+    double const elapsed_s =
+      (currentGpsTime_ns - maxDurationStartGpsTime_ns) * 1e-9;
+    std::stringstream ss;
+    ss << "Max duration reached (" << elapsed_s
+       << " s >= " << mScanner->getMaxDuration() << " s). Ending leg.";
+    logging::INFO(ss.str());
+    onLegComplete();
+    return;
+  }
+  bool const noMovementOrRotation =
+    (!mScanner->platform->canMove() &&
+     mScanner->getScannerHead(0)->getRotatePerSec_rad() == 0.0);
+
+  // warn user if no movement nor rotation and no max duration
+  if (noMovementOrRotation && mScanner->getMaxDuration() < 0.0) {
+    std::stringstream ss;
+    ss << "ERROR: No platform movement, scanner head rotation or maximum "
+          "duration set.\n"
+       << "Simulation would run indefinitely. To avoid this, simulation is "
+          "aborted.";
+    logging::ERR(ss.str());
+    throw HeliosException(ss.str());
+  }
+
+  // complete leg if both rotation and waypoint done
+  if (!noMovementOrRotation && mScanner->getScannerHead(0)->rotateCompleted() &&
       mScanner->platform->waypointReached()) {
     onLegComplete();
     return;
   }
-
-  // Ordered execution of simulation components
+  // Perform simulation step
   mScanner->platform->doSimStep(mScanner->getPulseFreq_Hz());
-  mScanner->doSimStep(mCurrentLegIndex, currentGpsTime_ns);
-  mScanner->platform->scene->doSimStep();
+  mScanner->doSimStep(mCurrentLegIndex, currentGpsTime_ns, getScene());
+  getScene().doSimStep();
   currentGpsTime_ns += stepGpsTime_ns;
   if (currentGpsTime_ns > 604800000000000.)
     currentGpsTime_ns -= 604800000000000.;
@@ -460,6 +501,9 @@ Simulation::start()
   initializeHooksForRun();
   timeStart_ns =
     duration_cast<nanoseconds>(system_clock::now().time_since_epoch());
+  maxDurationStartGpsTime_ns = currentGpsTime_ns;
+  maxDurationDeferredUntilFirstPulse = false;
+  maxDurationStartPulseNumber = mScanner->getCurrentPulseNumber();
 
 #ifdef DATA_ANALYTICS
   HDA_StateJSONReporter sjr((SurveyPlayback*)this, "helios_state.json");
@@ -649,4 +693,19 @@ Simulation::setScanner(std::shared_ptr<Scanner> scanner)
   logging::INFO("Simulation: Scanner changed!");
 
   this->mScanner = std::shared_ptr<Scanner>(scanner);
+}
+
+void
+Simulation::setScene(Scene& scene)
+{
+  this->mScene = &scene;
+}
+
+Scene&
+Simulation::getScene() const
+{
+  if (mScene == nullptr) {
+    throw HeliosException("Simulation has no scene assigned");
+  }
+  return *mScene;
 }

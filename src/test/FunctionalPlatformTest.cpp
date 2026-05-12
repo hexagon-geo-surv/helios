@@ -3,6 +3,8 @@
 #undef INFO
 #include "logging.hpp"
 #include <platform/InterpolatedMovingPlatform.h>
+#include <string>
+#include <vector>
 
 TEST_CASE("Functional platform test ")
 {
@@ -23,7 +25,7 @@ TEST_CASE("Functional platform test ")
                       "1.2   6  -1   1"),
     0,
     "t",
-    vector<string>({ "t", "x", "y", "z" }));
+    std::vector<std::string>({ "t", "x", "y", "z" }));
   fluxionum::DiffDesignMatrix<double, double> ddm = tdm.toDiffDesignMatrix();
   InterpolatedMovingPlatform imp(
     stepLoop,

@@ -16,7 +16,7 @@ using namespace std::chrono;
 // ************************************ //
 SimulationPlayer::SimulationPlayer(Simulation& sim)
   : sim(sim)
-  , scene(*sim.getScanner()->platform->scene)
+  , scene(sim.getScene())
   , plays(0)
   , platformStart(sim.getScanner()->platform->clone())
 {
@@ -75,7 +75,7 @@ SimulationPlayer::endPlay()
     restartScanner(*sim.getScanner());
     // Restart scene
     logging::DEBUG("Restarting scene for next simulation play ...");
-    restartScene(*sim.getScanner()->platform->scene, keepCRS);
+    restartScene(sim.getScene(), keepCRS);
     // Restart simulation
     logging::DEBUG("Restarting context for next simulation play ...");
     restartSimulation(sim);
@@ -340,6 +340,9 @@ SimulationPlayer::restartSimulation(Simulation& sim)
   sim.finished = false;
   sim.mStopped = false;
   sim.mCurrentLegIndex = 0;
+  sim.maxDurationStartGpsTime_ns = sim.currentGpsTime_ns;
+  sim.maxDurationDeferredUntilFirstPulse = false;
+  sim.maxDurationStartPulseNumber = sim.getScanner()->getCurrentPulseNumber();
   // Restart simulation step loop (i.e., time)
   logging::DEBUG("Restarting simulation step loop ...");
   sim.getStepLoop().setCurrentStep(0);

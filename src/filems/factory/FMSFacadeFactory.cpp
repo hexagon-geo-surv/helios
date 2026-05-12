@@ -76,6 +76,8 @@ helios::filems::FMSFacadeFactory::buildFacade(std::string const& outdir,
       std::make_shared<VectorialMeasurementWriter>());
   }
   fmsWrite.getMeasurementWriter()->setScanner(survey.scanner);
+  fmsWrite.getMeasurementWriter()->setSceneShift(
+    survey.requireScene().getShift());
   fmsWrite.setMeasurementWriterLasOutput(lasOutput);
   fmsWrite.setMeasurementWriterLas10(las10);
   fmsWrite.setMeasurementWriterZipOutput(zipOutput);

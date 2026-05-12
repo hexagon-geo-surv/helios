@@ -284,7 +284,7 @@ HDA_StateJSONReporter::reportDetector()
 void
 HDA_StateJSONReporter::reportScene()
 {
-  Scene* sc = sp->mScanner->platform->scene.get();
+  Scene* sc = sp->mSurvey->scene.get();
   std::stringstream ss;
   ss << openEntry("scene", 3, EntryType::OBJECT)
      << craftEntry("bbox_min", sc->getBBox()->getMin(), 4)
@@ -537,8 +537,9 @@ HDA_StateJSONReporter::craftEntry(std::string const& key,
     << craftEntry("verticalAngleMax_rad", ss.verticalAngleMax_rad, d2)
     << craftEntry("scanFreq_Hz", ss.scanFreq_Hz, d2)
     << craftEntry("beamDivAngle", ss.beamDivAngle, d2)
+    << craftEntry("trajectoryTimeInterval", ss.trajectoryTimeInterval, d2)
     << craftEntry(
-         "trajectoryTimeInterval", ss.trajectoryTimeInterval, d2, false, true)
+         "opticsWarmupPhase_s", ss.opticsWarmupPhase_s, d2, false, true)
     << closeEntry(depth, last, EntryType::OBJECT);
   return s.str();
 }

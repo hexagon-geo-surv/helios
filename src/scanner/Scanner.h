@@ -7,6 +7,7 @@
 #include <ScannerHead.h>
 #include <ScanningDevice.h>
 class AbstractDetector;
+class Scene;
 #include <FWFSettings.h>
 #include <Platform.h>
 #include <RandomnessGenerator.h>
@@ -74,8 +75,19 @@ protected:
    * When a scanner is not active, it is not sensing
    */
   bool state_isActive = true;
+  bool maxTimeElapsed(double currentGpsTime_ns, double startGpsTime_ns);
+  double maxDuration_s = -1.0;
 
 public:
+  Scanner(...);
+  virtual ~Scanner();
+
+  void applySettings(...);
+  bool checkMaxTimeElapsed(double currentGpsTime_ns, double startGpsTime_ns)
+  {
+    return maxTimeElapsed(currentGpsTime_ns, startGpsTime_ns);
+  }
+
   /**
    * @brief The scanning pulse process used by the scanner
    * @see ScanningPulseProcess
@@ -177,7 +189,6 @@ public:
    * @param scanner The scanner to be copied
    */
   Scanner(Scanner& scanner);
-  ~Scanner() override = default;
 
   // ***   C L O N E   *** //
   // ********************* //
@@ -218,10 +229,10 @@ public:
    * @see Simulation::taskDropper
    * @see Simulation::threadPool
    */
-  void buildScanningPulseProcess(
-    int const parallelizationStrategy,
-    PulseTaskDropper& dropper,
-    std::shared_ptr<PulseThreadPoolInterface> pool);
+  void buildScanningPulseProcess(int const parallelizationStrategy,
+                                 PulseTaskDropper& dropper,
+                                 std::shared_ptr<PulseThreadPoolInterface> pool,
+                                 Scene& scene);
   /**
    * @brief Apply scanner settings
    * @param settings Scanner settings to be applied
@@ -282,7 +293,8 @@ public:
    * @param currentGpsTime GPS time of current pulse
    */
   virtual void doSimStep(unsigned int legIndex,
-                         double const currentGpsTime) = 0;
+                         double const currentGpsTime,
+                         Scene& scene) = 0;
   /**
    * @brief Build a string representation of the scanner
    * @return String representing the scanner
@@ -493,7 +505,7 @@ public:
    * @param currentGpsTime Current GPS time (nanoseconds)
    * @see Scanner::allTrajectories
    */
-  void handleTrajectoryOutput(double const currentGpsTime);
+  void handleTrajectoryOutput(double const currentGpsTime, Scene& scene);
   /**
    * @brief Track given output path in a thread safe way
    * @param path Output path to be tracked
@@ -503,6 +515,11 @@ public:
 
   // *** GETTERs and SETTERs *** //
   // *************************** //
+
+public:
+  void setMaxDuration(double v) { maxDuration_s = v; }
+  double getMaxDuration() const { return maxDuration_s; }
+
   /**
    * @brief Obtain the requested scanning device.
    * @param idx The index of the scanning device to be obtained.

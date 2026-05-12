@@ -43,8 +43,9 @@ public:
    * @see SimulatedPulse
    */
   FullWaveformPulseRunnable(std::shared_ptr<Scanner> scanner,
+                            Scene& scene,
                             SimulatedPulse const& pulse)
-    : AbstractPulseRunnable(scanner, pulse)
+    : AbstractPulseRunnable(scanner, scene, pulse)
   {
   }
 

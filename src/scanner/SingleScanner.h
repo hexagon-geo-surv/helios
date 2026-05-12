@@ -87,7 +87,9 @@ public:
   /**
    * @see Scanner::doSimStep(unsigned int, double const)
    */
-  void doSimStep(unsigned int legIndex, double const currentGpsTime) override;
+  void doSimStep(unsigned int legIndex,
+                 double const currentGpsTime,
+                 Scene& scene) override;
   /**
    * @see Scanner::calcRaysNumber(size_t const)
    */

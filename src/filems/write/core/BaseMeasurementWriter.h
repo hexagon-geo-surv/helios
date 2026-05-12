@@ -137,10 +137,13 @@ public:
   inline void setScanner(std::shared_ptr<Scanner> scanner)
   {
     this->scanner = scanner;
-    if (scanner != nullptr) {
-      this->shift = this->scanner->platform->scene->getShift();
-    }
   }
+  /**
+   * @brief Set the shift applied by the base measurement writer
+   * @param shift New scene shift
+   * @see filems::BaseMeasurementWriter::shift
+   */
+  inline void setSceneShift(glm::dvec3 const& shift) { this->shift = shift; }
   /**
    * @brief Obtain the shift applied by the base measurement writer
    * @see filems::BaseMeasurementWriter::shift

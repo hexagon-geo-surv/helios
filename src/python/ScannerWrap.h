@@ -92,9 +92,12 @@ public:
     PYBIND11_OVERLOAD_PURE(void, Scanner, applySettingsFWF, fwfSettings, idx);
   }
 
-  void doSimStep(unsigned int legIndex, double const currentGpsTime) override
+  void doSimStep(unsigned int legIndex,
+                 double const currentGpsTime,
+                 Scene& scene) override
   {
-    PYBIND11_OVERLOAD_PURE(void, Scanner, doSimStep, legIndex, currentGpsTime);
+    PYBIND11_OVERLOAD_PURE(
+      void, Scanner, doSimStep, legIndex, currentGpsTime, scene);
   }
 
   void calcRaysNumber(size_t const idx) override

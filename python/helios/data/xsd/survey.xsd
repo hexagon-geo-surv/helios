@@ -31,6 +31,7 @@
                     <xs:attribute type="xs:float" name="beamDivergenceRad" use="optional"/>
                     <xs:attribute type="xs:float" name="verticalResolution_deg" use="optional"/>
                     <xs:attribute type="xs:float" name="horizontalResolution_deg" use="optional"/>
+                    <xs:attribute type="xs:float" name="opticsWarmupPhase_s" use="optional"/>
                 </xs:extension>
             </xs:simpleContent>
         </xs:complexType>
@@ -155,6 +156,7 @@
                                                         <xs:attribute type="xs:boolean" name="syncGPSTime" use="optional"/>
                                                         <xs:attribute type="xs:boolean" name="teleportToStart" use="optional"/>
                                                         <xs:attribute type="xs:boolean" name="toRadians" use="optional"/>
+                                                        <xs:attribute type="xs:string" name="interpolationDomain" use="optional"/>
                                                     </xs:extension>
                                                 </xs:simpleContent>
                                             </xs:complexType>
@@ -177,12 +179,14 @@
                                                         <xs:attribute type="xs:float" name="beamDivergenceRad" use="optional"/>
                                                         <xs:attribute type="xs:float" name="verticalResolution_deg" use="optional"/>
                                                         <xs:attribute type="xs:float" name="horizontalResolution_deg" use="optional"/>
+                                                        <xs:attribute type="xs:float" name="opticsWarmupPhase_s" use="optional"/>
                                                     </xs:extension>
                                                 </xs:simpleContent>
                                             </xs:complexType>
                                         </xs:element>
                                     </xs:sequence>
                                     <xs:attribute type="xs:int" name="stripId" use="optional"/>
+                                    <xs:attribute type="xs:float" name="maxDuration_s" use="optional"/>
                                 </xs:complexType>
                                 </xs:element>
                         </xs:choice>

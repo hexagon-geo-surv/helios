@@ -1,4 +1,5 @@
 #include "HelicopterPlatform.h"
+#include <logging.hpp>
 
 #include "maths/Directions.h"
 

@@ -5,6 +5,7 @@
 // ************************************ //
 BuddingScanningPulseProcess::BuddingScanningPulseProcess(
   std::shared_ptr<Scanner> scanner,
+  Scene& scene,
   PulseTaskDropper& dropper,
   PulseThreadPool& pool,
   RandomnessGenerator<double>& randGen1,
@@ -15,7 +16,7 @@ BuddingScanningPulseProcess::BuddingScanningPulseProcess(
   std::shared_ptr<HDA_PulseRecorder> pulseRecorder
 #endif
   )
-  : ScanningPulseProcess(scanner)
+  : ScanningPulseProcess(scanner, scene)
   , dropper(dropper)
   , pool(pool)
   , randGen1(randGen1)

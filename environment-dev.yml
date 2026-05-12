@@ -7,6 +7,7 @@ dependencies:
   - backports.strenum
   - cereal
   - click
+  - clickqt-utils
   - click-option-group
   - blas
   - glm
@@ -48,3 +49,4 @@ dependencies:
   - pytest-cov
   - catch2
   - benchmark
+  - vedo

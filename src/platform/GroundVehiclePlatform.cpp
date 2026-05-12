@@ -1,4 +1,5 @@
 #include "GroundVehiclePlatform.h"
+#include <logging.hpp>
 
 using namespace std;
 

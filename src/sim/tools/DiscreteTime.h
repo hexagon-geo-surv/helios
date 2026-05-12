@@ -1,8 +1,7 @@
 #pragma once
 
-#include <cstdlib>
-#define _USE_MATH_DEFINES
 #include <cmath>
+#include <cstdlib>
 
 /**
  * @author Alberto M. Esmoris Pena

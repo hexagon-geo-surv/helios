@@ -169,7 +169,7 @@ makeSparseCornerScene()
 }
 
 static std::shared_ptr<SingleScanner>
-makeScannerWithScene(std::shared_ptr<Scene> scene)
+makeScanner()
 {
   auto scanner =
     std::make_shared<SingleScanner>(0.0003,              // beamDiv_rad
@@ -192,7 +192,6 @@ makeScannerWithScene(std::shared_ptr<Scene> scene)
     );
 
   auto platform = std::make_shared<Platform>();
-  platform->scene = std::move(scene);
   scanner->platform = platform;
 
   scanner->setDetector(
@@ -208,6 +207,7 @@ makeScannerWithScene(std::shared_ptr<Scene> scene)
 
 struct BenchmarkContext
 {
+  std::shared_ptr<Scene> scene;
   std::shared_ptr<SingleScanner> scanner;
   BenchmarkFullWaveformPulseRunnable runnable;
   glm::dvec3 rayOrigin;
@@ -215,8 +215,9 @@ struct BenchmarkContext
   std::vector<double> tMinMax;
 
   explicit BenchmarkContext(std::size_t const gridResolution)
-    : scanner(makeScannerWithScene(makeTriangleGridScene(gridResolution)))
-    , runnable(scanner, makePulse(glm::dvec3(0.0, 0.0, 20.0)))
+    : scene(makeTriangleGridScene(gridResolution))
+    , scanner(makeScanner())
+    , runnable(scanner, *scene, makePulse(glm::dvec3(0.0, 0.0, 20.0)))
     , rayOrigin(0.0, 0.0, 20.0)
     , rayDir(0.0, 0.0, -1.0)
   {
@@ -225,8 +226,7 @@ struct BenchmarkContext
 
     // Precompute bbox intersection times so the benchmark isolates the
     // raycasting work in Scene::getIntersection.
-    tMinMax = scanner->platform->scene->getAABB()->getRayIntersection(rayOrigin,
-                                                                      rayDir);
+    tMinMax = scene->getAABB()->getRayIntersection(rayOrigin, rayDir);
 
     // If the ray misses the scene bbox, the benchmark would measure the fast
     // early-out path. That is not intended here.
@@ -239,6 +239,7 @@ struct BenchmarkContext
 
 struct MissBenchmarkContext
 {
+  std::shared_ptr<Scene> scene;
   std::shared_ptr<SingleScanner> scanner;
   BenchmarkFullWaveformPulseRunnable runnable;
   glm::dvec3 rayOrigin;
@@ -246,14 +247,14 @@ struct MissBenchmarkContext
   std::vector<double> tMinMax;
 
   MissBenchmarkContext()
-    : scanner(makeScannerWithScene(makeSparseCornerScene()))
-    , runnable(scanner, makePulse(glm::dvec3(0.0, 0.0, 20.0)))
+    : scene(makeSparseCornerScene())
+    , scanner(makeScanner())
+    , runnable(scanner, *scene, makePulse(glm::dvec3(0.0, 0.0, 20.0)))
     , rayOrigin(0.0, 0.0, 20.0)
     , rayDir(0.0, 0.0, -1.0)
   {
     runnable.detector = scanner->getDetector(0);
-    tMinMax = scanner->platform->scene->getAABB()->getRayIntersection(rayOrigin,
-                                                                      rayDir);
+    tMinMax = scene->getAABB()->getRayIntersection(rayOrigin, rayDir);
     if (tMinMax.empty()) {
       throw std::runtime_error(
         "Miss benchmark ray does not intersect the scene AABB");

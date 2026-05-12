@@ -5,7 +5,6 @@
 
 #include <iostream>
 
-#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include <logging.hpp>
@@ -15,6 +14,7 @@
 #include <Trajectory.h>
 #include <scanner/BuddingScanningPulseProcess.h>
 #include <scanner/WarehouseScanningPulseProcess.h>
+#include <scene/Scene.h>
 
 using namespace std;
 
@@ -40,6 +40,7 @@ clonePlatformForScanner(const std::shared_ptr<Platform>& platform)
 
 // ***  CONSTRUCTION / DESTRUCTION  *** //
 // ************************************ //
+Scanner::~Scanner() = default;
 Scanner::Scanner(std::string const id,
                  std::list<int> const& pulseFreqs,
                  bool const writeWaveform,
@@ -178,6 +179,7 @@ Scanner::retrieveCurrentSettings(size_t const idx)
   settings->active = isActive();
   settings->beamDivAngle = getBeamDivergence(idx);
   settings->trajectoryTimeInterval = trajectoryTimeInterval_ns / 1000000000.0;
+  settings->maxDuration_s = maxDuration_s;
   // Settings from ScannerHead
   settings->headRotatePerSec_rad = getScannerHead(idx)->getRotateStart();
   settings->headRotateStart_rad = getScannerHead(idx)->getRotateCurrent();
@@ -189,6 +191,8 @@ Scanner::retrieveCurrentSettings(size_t const idx)
     getBeamDeflector(idx)->cfg_setting_verticalAngleMin_rad;
   settings->verticalAngleMax_rad =
     getBeamDeflector(idx)->cfg_setting_verticalAngleMax_rad;
+  settings->opticsWarmupPhase_s =
+    getBeamDeflector(idx)->getOpticsWarmupPhase_s();
   // Return settings
   return settings;
 }
@@ -281,7 +285,7 @@ Scanner::handleSimStepNoise(glm::dvec3& absoluteBeamOrigin,
 }
 
 void
-Scanner::handleTrajectoryOutput(double const currentGpsTime)
+Scanner::handleTrajectoryOutput(double const currentGpsTime, Scene& scene)
 {
   // Get out of here if trajectory time interval is 0 (no trajectory output)
   if (trajectoryTimeInterval_ns == 0.0)
@@ -296,7 +300,7 @@ Scanner::handleTrajectoryOutput(double const currentGpsTime)
   lastTrajectoryTime = currentGpsTime;
 
   // Compute shifted position
-  glm::dvec3 const pos = platform->position + platform->scene->getShift();
+  glm::dvec3 const pos = platform->position + scene.getShift();
 
   // Obtain roll, pitch and yaw
   double roll, pitch, yaw;
@@ -352,11 +356,13 @@ void
 Scanner::buildScanningPulseProcess(
   int const parallelizationStrategy,
   PulseTaskDropper& dropper,
-  std::shared_ptr<PulseThreadPoolInterface> pool)
+  std::shared_ptr<PulseThreadPoolInterface> pool,
+  Scene& scene)
 {
   if (parallelizationStrategy == 0) {
     spp = std::unique_ptr<ScanningPulseProcess>(new BuddingScanningPulseProcess(
       getDetector(0)->scanner,
+      scene,
       dropper,
       *(std::static_pointer_cast<PulseThreadPool>(pool)),
       *randGen1,
@@ -371,6 +377,7 @@ Scanner::buildScanningPulseProcess(
     spp =
       std::unique_ptr<ScanningPulseProcess>(new WarehouseScanningPulseProcess(
         getDetector(0)->scanner,
+        scene,
         dropper,
         *(std::static_pointer_cast<PulseWarehouseThreadPool>(pool)),
         *randGen1,
@@ -387,4 +394,14 @@ Scanner::buildScanningPulseProcess(
        << "strategy: " << parallelizationStrategy;
     throw HeliosException(ss.str());
   }
+}
+
+bool
+Scanner::maxTimeElapsed(double currentGpsTime_ns, double startGpsTime_ns)
+{
+  if (maxDuration_s <= 0.0)
+    return false;
+
+  double elapsed_s = (currentGpsTime_ns - startGpsTime_ns) * 1e-9;
+  return elapsed_s >= maxDuration_s;
 }

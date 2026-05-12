@@ -4,6 +4,7 @@
 #include <Asset.h>
 #include <Leg.h>
 #include <Scanner.h>
+#include <Scene.h>
 
 class SurveyPlayback;
 
@@ -28,6 +29,11 @@ public:
    * @see Scanner
    */
   std::shared_ptr<Scanner> scanner = nullptr;
+  /**
+   * @brief Scene used by the survey
+   * @see Scene
+   */
+  std::shared_ptr<Scene> scene = nullptr;
   /**
    * @brief Simulation speed factor for the survey
    */
@@ -73,6 +79,25 @@ public:
    * @see Leg
    */
   void removeLeg(int legIndex);
+  /**
+   * @brief Obtain the scene used by the survey
+   * @return Survey scene
+   * @see Survey::scene
+   */
+  std::shared_ptr<Scene> getScene() const;
+  /**
+   * @brief Obtain the scene used by the survey by reference
+   * @return Survey scene by reference
+   * @throws HeliosException if no scene has been assigned
+   * @see Survey::scene
+   */
+  Scene& requireScene() const;
+  /**
+   * @brief Set the scene used by the survey
+   * @param scene New survey scene
+   * @see Survey::scene
+   */
+  void setScene(std::shared_ptr<Scene> scene);
 
   /**
    * @brief Compute survey length (distance passing through all legs)

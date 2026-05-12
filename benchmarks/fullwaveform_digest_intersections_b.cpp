@@ -51,6 +51,7 @@ public:
 
 struct BenchmarkContext
 {
+  std::shared_ptr<BenchmarkScene> scene;
   std::shared_ptr<SingleScanner> scanner;
   BenchmarkFullWaveformPulseRunnable runnable;
 
@@ -69,8 +70,9 @@ struct BenchmarkContext
 
   explicit BenchmarkContext(int const beamSampleQuality,
                             std::size_t const numReflections)
-    : scanner(makeScanner(beamSampleQuality))
-    , runnable(scanner, makePulse())
+    : scene(makeScene())
+    , scanner(makeScanner(beamSampleQuality))
+    , runnable(scanner, *scene, makePulse())
     , randGen1(1337)
     , randGen2(7331)
     , beamDir(0, 0, 0)
@@ -138,6 +140,14 @@ struct BenchmarkContext
     );
   }
 
+  static std::shared_ptr<BenchmarkScene> makeScene()
+  {
+    auto scene = std::make_shared<BenchmarkScene>();
+    scene->setBenchmarkAABB(glm::dvec3(-50.0, -50.0, -50.0),
+                            glm::dvec3(50.0, 50.0, 50.0));
+    return scene;
+  }
+
   static std::shared_ptr<SingleScanner> makeScanner(int const beamSampleQuality)
   {
     auto scanner =
@@ -163,10 +173,6 @@ struct BenchmarkContext
     scanner->getFWFSettings(0).beamSampleQuality = beamSampleQuality;
 
     auto platform = std::make_shared<Platform>();
-    auto scene = std::make_shared<BenchmarkScene>();
-    scene->setBenchmarkAABB(glm::dvec3(-50.0, -50.0, -50.0),
-                            glm::dvec3(50.0, 50.0, 50.0));
-    platform->scene = scene;
     scanner->platform = platform;
 
     scanner->setDetector(

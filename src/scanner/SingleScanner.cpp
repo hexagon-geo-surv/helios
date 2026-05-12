@@ -125,10 +125,12 @@ SingleScanner::applySettings(std::shared_ptr<ScannerSettings> settings,
                              size_t const idx)
 {
   // Configure scanner and scanning device
+  setMaxDuration(settings->maxDuration_s);
   setPulseFreq_Hz(settings->pulseFreq_Hz);
   setActive(settings->active);
   setBeamDivergence(settings->beamDivAngle, 0);
   trajectoryTimeInterval_ns = settings->trajectoryTimeInterval * 1000000000.0;
+  scanDev.setOpticsWarmupPhase_s(settings->opticsWarmupPhase_s);
   scanDev.configureBeam();
 
   // Configure other components
@@ -138,7 +140,9 @@ SingleScanner::applySettings(std::shared_ptr<ScannerSettings> settings,
 }
 
 void
-SingleScanner::doSimStep(unsigned int legIndex, double const currentGpsTime)
+SingleScanner::doSimStep(unsigned int legIndex,
+                         double const currentGpsTime,
+                         Scene& scene)
 {
   // Check whether the scanner is active or not
   bool const _isActive = isActive();
@@ -161,7 +165,7 @@ SingleScanner::doSimStep(unsigned int legIndex, double const currentGpsTime)
     return;
 
   // Handle trajectory output
-  handleTrajectoryOutput(currentGpsTime);
+  handleTrajectoryOutput(currentGpsTime, scene);
 }
 
 void

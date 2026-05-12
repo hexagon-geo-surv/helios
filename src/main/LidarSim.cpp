@@ -159,7 +159,7 @@ LidarSim::release(std::shared_ptr<SurveyPlayback> sp)
   sc->fms = nullptr;
   sp->fms = nullptr;
   // Release main components
-  sc->platform->scene = nullptr;
+  sp->mSurvey->scene = nullptr;
   sc->platform = nullptr;
   sp->mSurvey->scanner = nullptr;
   sp->mSurvey = nullptr;

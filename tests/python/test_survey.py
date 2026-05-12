@@ -8,9 +8,9 @@ from helios.platforms import (
     simple_linearpath,
     StaticPlatformSettings,
 )
-from helios.scanner import Scanner, riegl_lms_q560, riegl_vz_400
+from helios.scanner import Scanner, riegl_lms_q560, riegl_vz_1000, riegl_vz_400
 from helios.scene import StaticScene, ScenePart
-from helios.settings import ExecutionSettings
+from helios.settings import ExecutionSettings, OutputFormat, ProgressBarStrategy
 from helios.survey import *
 from helios.utils import set_rng_seed
 from helios import HeliosException
@@ -80,6 +80,61 @@ def test_survey_clone_run_matches_point_cloud(survey):
     assert cloned_survey.scene is not survey.scene
     np.testing.assert_array_equal(points, cloned_points)
     np.testing.assert_array_equal(trajectory, cloned_trajectory)
+
+
+def test_surveys_sharing_scene_match_deep_copied_scenes():
+    execution_settings = ExecutionSettings(
+        num_threads=1,
+        kdt_num_threads=1,
+        kdt_geom_num_threads=1,
+        progressbar=ProgressBarStrategy.NONE,
+    )
+    scanner_settings = ScannerSettings(
+        pulse_frequency=2000,
+        scan_frequency=20,
+        scan_angle="10 deg",
+        head_rotation="20 deg/s",
+        rotation_start_angle="0 deg",
+        rotation_stop_angle="1 deg",
+    )
+    platform_settings = StaticPlatformSettings(x=0, y=0, z=0)
+    shared_scene = StaticScene(
+        scene_parts=[ScenePart.from_obj("data/sceneparts/basic/box/box100.obj")]
+    )
+
+    def make_survey(scanner_factory, scene):
+        survey = Survey(scanner=scanner_factory(), platform=tripod(), scene=scene)
+        survey.add_leg(
+            scanner_settings=copy.deepcopy(scanner_settings),
+            platform_settings=copy.deepcopy(platform_settings),
+        )
+        return survey
+
+    survey_pairs = [
+        (
+            make_survey(riegl_vz_400, shared_scene),
+            make_survey(riegl_vz_400, copy.deepcopy(shared_scene)),
+        ),
+        (
+            make_survey(riegl_vz_1000, shared_scene),
+            make_survey(riegl_vz_1000, copy.deepcopy(shared_scene)),
+        ),
+    ]
+
+    assert survey_pairs[0][0].scene is shared_scene
+    assert survey_pairs[1][0].scene is shared_scene
+
+    for shared_survey, copied_scene_survey in survey_pairs:
+        shared_points, shared_trajectory = shared_survey.run(
+            format=OutputFormat.NPY, execution_settings=execution_settings
+        )
+        copied_points, copied_trajectory = copied_scene_survey.run(
+            format=OutputFormat.NPY, execution_settings=execution_settings
+        )
+
+        assert 0 < shared_points.shape[0] <= 10
+        np.testing.assert_array_equal(shared_points, copied_points)
+        np.testing.assert_array_equal(shared_trajectory, copied_trajectory)
 
 
 def test_add_leg_parameters():

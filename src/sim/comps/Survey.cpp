@@ -3,11 +3,29 @@
 
 #include "Survey.h"
 #include <AbstractDetector.h>
+#include <HeliosException.h>
 #include <Simulation.h>
 #include <SurveyPlayback.h>
 #include <platform/InterpolatedMovingPlatformEgg.h>
 #include <scene/StaticScene.h>
 #include <scene/dynamic/DynScene.h>
+
+namespace {
+std::shared_ptr<Scene>
+cloneScene(std::shared_ptr<Scene> const& scene)
+{
+  if (scene == nullptr)
+    return nullptr;
+
+  if (auto dynScene = std::dynamic_pointer_cast<DynScene>(scene)) {
+    return std::make_shared<DynScene>(*dynScene);
+  }
+  if (auto staticScene = std::dynamic_pointer_cast<StaticScene>(scene)) {
+    return std::make_shared<StaticScene>(*staticScene);
+  }
+  return std::make_shared<Scene>(*scene);
+}
+}
 
 // ***  CONSTRUCTION / DESTRUCTION  *** //
 // ************************************ //
@@ -25,24 +43,13 @@ Survey::Survey(Survey& survey, bool const deepCopy)
     this->scanner->getDetector(i)->scanner = this->scanner;
   }
 
+  // Copy scene
+  this->scene = deepCopy ? cloneScene(survey.getScene()) : survey.getScene();
+
   // Copy legs
   this->legs = std::vector<std::shared_ptr<Leg>>(0);
   for (size_t i = 0; i < survey.legs.size(); i++) {
     this->legs.push_back(std::make_shared<Leg>(*survey.legs[i]));
-  }
-
-  // Make deep copy effective
-  if (deepCopy && this->scanner->platform->scene != nullptr) {
-    auto scene = this->scanner->platform->scene;
-    if (auto dynScene = std::dynamic_pointer_cast<DynScene>(scene)) {
-      this->scanner->platform->scene = std::make_shared<DynScene>(*dynScene);
-    } else if (auto staticScene =
-                 std::dynamic_pointer_cast<StaticScene>(scene)) {
-      this->scanner->platform->scene =
-        std::make_shared<StaticScene>(*staticScene);
-    } else {
-      this->scanner->platform->scene = std::make_shared<Scene>(*scene);
-    }
   }
 }
 
@@ -60,6 +67,27 @@ void
 Survey::removeLeg(int legIndex)
 {
   legs.erase(legs.begin() + legIndex);
+}
+
+std::shared_ptr<Scene>
+Survey::getScene() const
+{
+  return scene;
+}
+
+Scene&
+Survey::requireScene() const
+{
+  if (scene == nullptr) {
+    throw HeliosException("Survey has no scene assigned");
+  }
+  return *scene;
+}
+
+void
+Survey::setScene(std::shared_ptr<Scene> scene)
+{
+  this->scene = scene;
 }
 
 void

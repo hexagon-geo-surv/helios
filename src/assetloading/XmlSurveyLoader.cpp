@@ -72,7 +72,7 @@ XmlSurveyLoader::createSurveyFromXml(tinyxml2::XMLElement* surveyNode,
   // Load scene
   std::string sceneString = surveyNode->Attribute("scene");
   try {
-    survey->scanner->platform->scene = loadScene(sceneString);
+    survey->setScene(loadScene(sceneString));
   } catch (const std::exception& e) {
     std::stringstream ss;
     ss << "Failed to load scene '" << sceneString << "': " << e.what();
@@ -82,13 +82,12 @@ XmlSurveyLoader::createSurveyFromXml(tinyxml2::XMLElement* surveyNode,
   SpectralLibrary spectralLibrary = SpectralLibrary(
     (float)survey->scanner->getWavelength(), assetsDir, "spectra");
   spectralLibrary.readReflectances();
-  spectralLibrary.setReflectances(survey->scanner->platform->scene.get());
-  survey->scanner->platform->scene->setDefaultReflectance(
+  spectralLibrary.setReflectances(survey->getScene().get());
+  survey->requireScene().setDefaultReflectance(
     spectralLibrary.getDefaultReflectance());
 
   // Update materials for all swap on repeat handlers
-  for (std::shared_ptr<ScenePart> sp :
-       survey->scanner->platform->scene->parts) {
+  for (std::shared_ptr<ScenePart> sp : survey->requireScene().parts) {
     // Ignore scene parts with no swap on repeat
     if (sp->sorh == nullptr)
       continue;
@@ -163,16 +162,29 @@ XmlSurveyLoader::createLegFromXML(
   } else {
     leg->mScannerSettings = std::make_shared<ScannerSettings>();
   }
-
   // Trajectory settings
   platformSettingsNode = legNode->FirstChildElement("platformSettings");
   if (platformSettingsNode != nullptr &&
       XmlUtils::hasAttribute(platformSettingsNode, "trajectory")) {
     leg->mTrajectorySettings = createTrajectorySettingsFromXml(legNode);
-  } else
+  } else {
     leg->mTrajectorySettings = nullptr;
+  }
 
-  // Return built leg
+  // Parse optional maxDuration_s attribute
+  double maxDuration =
+    XmlUtils::getAttributeCast<double>(legNode, "maxDuration_s", -1.0);
+
+  if (maxDuration > 0.0) {
+
+    // Ensure trajectory settings exist
+    if (!leg->mTrajectorySettings)
+      leg->mTrajectorySettings = std::make_shared<TrajectorySettings>();
+
+    // Store in trajectory
+    leg->mTrajectorySettings->maxDuration_s = maxDuration;
+  }
+
   return leg;
 }
 
@@ -446,7 +458,7 @@ XmlSurveyLoader::applySceneShift(tinyxml2::XMLElement* surveyNode,
                                  std::shared_ptr<Survey> survey)
 {
   // Obtain scene shift
-  glm::dvec3 shift = survey->scanner->platform->scene->getShift();
+  glm::dvec3 shift = survey->requireScene().getShift();
   // Prepare normal distribution if necessary
   RandomnessGenerator<double> rg(*DEFAULT_RG);
   bool legRandomOffset = surveyNode->BoolAttribute("legRandomOffset", false);
@@ -484,8 +496,7 @@ XmlSurveyLoader::applySceneShift(tinyxml2::XMLElement* surveyNode,
       // If specified, move waypoint z coordinate to ground level
       if (leg->mPlatformSettings->onGround) {
         glm::dvec3 pos = leg->mPlatformSettings->getPosition();
-        glm::dvec3 ground =
-          survey->scanner->platform->scene->getGroundPointAt(pos);
+        glm::dvec3 ground = survey->requireScene().getGroundPointAt(pos);
         leg->mPlatformSettings->setPosition(glm::dvec3(pos.x, pos.y, ground.z));
       }
 

@@ -19,6 +19,8 @@
 #include <exception>
 #include <vector>
 
+class Scene;
+
 /**
  * @brief Class representing a simulation
  */
@@ -61,6 +63,11 @@ protected:
    * @see Scanner
    */
   std::shared_ptr<Scanner> mScanner = nullptr;
+  /**
+   * @brief Scene used by the simulation
+   * @see Scene
+   */
+  Scene* mScene = nullptr;
 
   /**
    * @brief The handler for simulation steps, it also contains the discrete
@@ -125,6 +132,18 @@ protected:
    * @brief Time corresponding to simulation start (nanoseconds)
    */
   std::chrono::nanoseconds timeStart_ns;
+  /**
+   * @brief GPS time reference (nanoseconds) for evaluating maxDuration_s
+   */
+  double maxDurationStartGpsTime_ns = 0.0;
+  /**
+   * @brief Whether maxDuration_s timing is deferred until first pulse of leg.
+   */
+  bool maxDurationDeferredUntilFirstPulse = false;
+  /**
+   * @brief Pulse counter snapshot at leg start for deferred maxDuration_s.
+   */
+  int maxDurationStartPulseNumber = 0;
 
   /**
    * @brief Time corresponding to simulation start (currentGpsTime in
@@ -347,11 +366,23 @@ public:
    */
   void setScanner(std::shared_ptr<Scanner> scanner);
   /**
+   * @brief Set scene for the simulation
+   * @param scene New scene for the simulation
+   * @see Simulation::mScene
+   */
+  void setScene(Scene& scene);
+  /**
    * @brief Obtain simulation scanner
    * @return Simulation scanner
    * @see Simulation::mScanner
    */
   inline std::shared_ptr<Scanner> getScanner() { return this->mScanner; }
+  /**
+   * @brief Obtain simulation scene
+   * @return Simulation scene
+   * @see Simulation::mScene
+   */
+  Scene& getScene() const;
 
   /**
    * @brief Check if simulation is paused (true) or not (false)
