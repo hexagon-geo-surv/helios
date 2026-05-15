@@ -20,22 +20,44 @@ jobs:
       run:
         # Conda requires a login shell in order to work properly
         shell: bash -l {0}  
+
+    env:
+      CONDA_INSTALL_DIR: ${{ github.workspace }}/miniconda
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Create Helios dev environment
+      - name: Setup Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
+          installation-dir: ${{ env.CONDA_INSTALL_DIR }}
           auto-update-conda: true
-          auto-activate-base: false
-          activate-environment: helios-dev
-          environment-file: environment-dev.yml
-          python-version: "3.13"
-          miniconda-version: "latest"
           conda-remove-defaults: true
+          channels: conda-forge
+          auto-activate: false
+          activate-environment: helios-dev
+          python-version: "3.10"
+          miniconda-version: "latest"
+
+      - name: Restore conda environment cache
+        id: conda-cache
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.CONDA_INSTALL_DIR }}/envs/helios-dev
+          key: conda-env-v3-${{ runner.os }}-py3.10-${{ hashFiles('environment-dev.yml') }}
+
+      - name: Pin Python version in environment file
+        if: steps.conda-cache.outputs.cache-hit != 'true'
+        run: |
+          sed "s/^  - python$/  - python=3.10/" environment-dev.yml > environment-dev-ci.yml
+
+      - name: Create Helios dev environment
+        if: steps.conda-cache.outputs.cache-hit != 'true'
+        run: |
+          conda env update -n helios-dev -f environment-dev-ci.yml --prune || conda env create -n helios-dev -f environment-dev-ci.yml
+          conda run -n helios-dev python --version
 
       - name: Install Conda GCC
         run: |
@@ -68,7 +90,7 @@ jobs:
           lcov --directory build --capture --output-file coverage.info --ignore-errors mismatch
       
       - name: Upload coverage to CodeCov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           fail_ci_if_error: true
           files: ./coverage.info,./coverage.xml

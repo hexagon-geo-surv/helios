@@ -88,6 +88,7 @@ MultiScanner::applySettings(std::shared_ptr<ScannerSettings> settings,
                             size_t const idx)
 {
   // Configure scanner
+  setMaxDuration(settings->maxDuration_s);
   setPulseFreq_Hz(settings->pulseFreq_Hz);
   setActive(settings->active);
   setBeamDivergence(settings->beamDivAngle, 0);
@@ -96,6 +97,7 @@ MultiScanner::applySettings(std::shared_ptr<ScannerSettings> settings,
   // Configure scanning devices and their components
   size_t const numScanDevs = scanDevs.size();
   for (size_t i = 0; i < numScanDevs; ++i) {
+    scanDevs[i].setOpticsWarmupPhase_s(settings->opticsWarmupPhase_s);
     scanDevs[i].configureBeam();
     getDetector(i)->applySettings(settings);
     getScannerHead(i)->applySettings(settings);

@@ -1684,3 +1684,14 @@ def test_survey_measurement_and_trajectory_positions_are_reproducible():
     assert np.allclose(meas0["position"][0], meas2["position"][0], rtol=1e-1, atol=1e-1)
     assert np.allclose(traj0["position"][0], traj1["position"][0], rtol=1e-1, atol=1e-1)
     assert np.allclose(traj0["position"][0], traj2["position"][0], rtol=1e-1, atol=1e-1)
+
+
+def test_take_vis_buffer_from_scene_part():
+    part = ScenePart.from_xml("data/scenes/toyblocks/toyblocks_scene.xml", id="0")
+    buffers = part._get_visualization_buffers()
+    triangle_vertices = np.asarray(buffers.triangle_vertices, dtype=np.float32)
+    triangle_indices = np.asarray(buffers.triangle_indices, dtype=np.int32)
+
+    assert triangle_vertices.shape[0] > 0
+    assert triangle_vertices.shape[1] == 3
+    assert triangle_indices.shape[0] > 0

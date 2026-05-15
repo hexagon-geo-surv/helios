@@ -34,21 +34,44 @@ jobs:
       run:
         # Conda requires a login shell in order to work properly
         shell: bash -l {0}  
+
+    env:
+      CONDA_INSTALL_DIR: ${{ github.workspace }}/miniconda
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Create Helios dev environment
+      - name: Setup Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
+          installation-dir: ${{ env.CONDA_INSTALL_DIR }}
           auto-update-conda: true
-          auto-activate-base: false
+          conda-remove-defaults: true
+          channels: conda-forge
+          auto-activate: false
           activate-environment: helios-dev
-          environment-file: environment-dev.yml
           python-version: ${{ matrix.python }}
           miniconda-version: "latest"
+
+      - name: Restore conda environment cache
+        id: conda-cache
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.CONDA_INSTALL_DIR }}/envs/helios-dev
+          key: conda-env-v3-${{ runner.os }}-py${{ matrix.python }}-${{ hashFiles('environment-dev.yml') }}
+
+      - name: Pin Python version in environment file
+        if: steps.conda-cache.outputs.cache-hit != 'true'
+        run: |
+          sed "s/^  - python$/  - python=${{ matrix.python }}/" environment-dev.yml > environment-dev-ci.yml
+
+      - name: Create Helios dev environment
+        if: steps.conda-cache.outputs.cache-hit != 'true'
+        run: |
+          conda env update -n helios-dev -f environment-dev-ci.yml --prune || conda env create -n helios-dev -f environment-dev-ci.yml
+          conda run -n helios-dev python --version
 
       - name: Install Conda GCC
         if: runner.os == 'Linux'
@@ -78,7 +101,7 @@ jobs:
           python -m pytest
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always() && github.event.inputs.upload-outputs == 'true' && runner.os == 'Windows'
         with:
           name: test-results
@@ -90,23 +113,46 @@ jobs:
       run:
         # Conda requires a login shell in order to work properly
         shell: bash -l {0}  
+
+    env:
+      CONDA_INSTALL_DIR: ${{ github.workspace }}/miniconda
   
     runs-on: ubuntu-latest
     name: Header sanity check
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Create Helios dev environment
+      - name: Setup Miniconda
         uses: conda-incubator/setup-miniconda@v3
         with:
+          installation-dir: ${{ env.CONDA_INSTALL_DIR }}
           auto-update-conda: true
-          auto-activate-base: false
+          conda-remove-defaults: true
+          channels: conda-forge
+          auto-activate: false
           activate-environment: helios-dev
-          environment-file: environment-dev.yml
           python-version: "3.10"
           miniconda-version: "latest"
+
+      - name: Restore conda environment cache
+        id: conda-cache
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.CONDA_INSTALL_DIR }}/envs/helios-dev
+          key: conda-env-v3-${{ runner.os }}-py3.10-${{ hashFiles('environment-dev.yml') }}
+
+      - name: Pin Python version in environment file
+        if: steps.conda-cache.outputs.cache-hit != 'true'
+        run: |
+          sed "s/^  - python$/  - python=3.10/" environment-dev.yml > environment-dev-ci.yml
+
+      - name: Create Helios dev environment
+        if: steps.conda-cache.outputs.cache-hit != 'true'
+        run: |
+          conda env update -n helios-dev -f environment-dev-ci.yml --prune || conda env create -n helios-dev -f environment-dev-ci.yml
+          conda run -n helios-dev python --version
 
       - name: Install Conda GCC
         run: |
