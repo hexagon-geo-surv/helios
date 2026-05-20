@@ -5,12 +5,12 @@ type: software
 authors:
   - family-names: Höfle
     given-names: Bernhard
-  - family-names: Kempf
-    given-names: Dominic
   - family-names: Weiser
     given-names: Hannah
   - family-names: Kapitan
     given-names: Dmitrii
+  - family-names: Kempf
+    given-names: Dominic
 identifiers:
   - type: doi
     value: 10.5281/zenodo.4452870
