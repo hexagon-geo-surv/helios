@@ -15,8 +15,6 @@ identifiers:
   - type: doi
     value: 10.5281/zenodo.4452870
     description: zenodo
-repository-code: 'https://github.com/3dgeo-heidelberg/helios'
-url: >-
-  https://www.geog.uni-heidelberg.de/en/3dgeo/projects-of-the-3dgeo-research-group/helios
+url: https://github.com/3dgeo-heidelberg/helios
 version: 3.0.0
 date-released: '2026-05-20'
