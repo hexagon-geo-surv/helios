@@ -34,7 +34,7 @@ SERIALIZATION_FORMAT_MAJOR_VERSION = 0
 # Bump this every time you change the serialization format. Alongside
 # this bump, you should adapt the schema in python/helios/data/serialization_schema.json
 # and add a new migration as described below.
-SERIALIZATION_FORMAT_MINOR_VERSION = 0
+SERIALIZATION_FORMAT_MINOR_VERSION = 1
 
 
 SERIALIZATION_SCHEMA_URL = (
@@ -84,15 +84,19 @@ def register_migration(from_minor_version: int):
 # Minor version migrations. Add one per new minor version.
 #
 
-# Example first migration:
-# @register_migration(from_minor_version=0)
-# def _migrate_v0_to_v1(document: dict[str, Any]) -> dict[str, Any]:
-#     migrated = dict(document)
-#
-#     # Do something with migrated
-#
-#     migrated["serialization_minor_version"] = 1
-#     return migrated
+
+@register_migration(from_minor_version=0)
+def _migrate_v0_to_v1(document: dict[str, Any]) -> dict[str, Any]:
+    """Convert waveform time settings to physical range settings."""
+    migrated = dict(document)
+    if migrated.get("model_class") == "helios.settings.FullWaveformSettings":
+        from helios.settings import FullWaveformSettings
+
+        migrated["fields"] = FullWaveformSettings._normalize_init_kwargs(
+            migrated["fields"]
+        )
+    migrated["serialization_minor_version"] = 1
+    return migrated
 
 
 def _normalize_provenance_value(value: Any):
